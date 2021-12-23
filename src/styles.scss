@@ -20,22 +20,8 @@ input {
   text-align: center;
 }
 
-.scroller {
+.grid-container {
   width: 100vw;
   height: calc(100vh - 50px);
-  overflow: auto;
   margin-top: 50px;
-  display: flex;
-  flex-direction: column;
-  .grid-header {
-    flex: 0;
-  }
-  .grid-body {
-    flex: 1;
-  }
-}
-
-.header-cell {
-  position: sticky;
-  top: 0;
 }

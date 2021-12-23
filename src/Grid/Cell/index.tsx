@@ -1,4 +1,5 @@
 export * from "./Data";
+import "./Cell.scss";
 import { CellEvents, useCellEvents } from "./Event";
 import { renderCell, CellValue } from "./Data";
 
@@ -32,7 +33,7 @@ export function Cell({
     rowIndex
   });
   return (
-    <div style={rowStyle(style)} className="row-cell" {...htmlEvents}>
+    <div style={rowStyle(style)} className="grid-cell" {...htmlEvents}>
       {renderCell({ value, readOnly })}
     </div>
   );

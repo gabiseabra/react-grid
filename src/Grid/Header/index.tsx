@@ -2,7 +2,10 @@ import "./Header.scss";
 import { useMemo, useState } from "react";
 import { Column, HeaderCell } from "./Column";
 
-export type RenderHeaderProps = { columns: Column[]; columnWidth: number };
+export type RenderHeaderProps = {
+  columns: Column[];
+  columnWidth: number
+};
 
 export type HeaderProps = {
   initialColumns: Column[];

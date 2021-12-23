@@ -1,3 +1,4 @@
+import cx from 'classnames/bind';
 import { useMemo } from "react";
 import { GridOnScrollProps, VariableSizeGrid } from "react-window";
 import { Cell, CellValue, ItemData } from "../Cell";
@@ -7,6 +8,9 @@ type Column = {
   width?: number;
 };
 
+export type BodyInnerRef = React.Ref<VariableSizeGrid<ItemData>>
+export type BodyOuterRef = React.Ref<any>
+
 export type BodyProps = {
   columns: Column[];
   data: { [k: string]: CellValue }[];
@@ -15,9 +19,10 @@ export type BodyProps = {
   columnWidth: number;
   rowHeight: number;
   readOnly?: boolean;
-  innerRef?: React.Ref<VariableSizeGrid<ItemData>>,
-  outerRef?: React.Ref<any>,
+  innerRef?: BodyInnerRef,
+  outerRef?: BodyOuterRef,
   style?: React.CSSProperties,
+  className?: string,
   onScroll?: (props: GridOnScrollProps) => any
 };
 
@@ -32,6 +37,7 @@ export function Body({
   innerRef,
   outerRef,
   style,
+  className,
   onScroll
 }: BodyProps): JSX.Element {
   const itemData = useMemo(
@@ -57,7 +63,7 @@ export function Body({
       outerRef={outerRef}
       style={style}
       onScroll={onScroll}
-      className="grid-body"
+      className={cx("grid-body", className)}
     >
       {Cell}
     </VariableSizeGrid>
