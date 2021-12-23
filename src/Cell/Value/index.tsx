@@ -20,24 +20,24 @@ export class CellTypeError extends Error {
 
 // Begin cell type definitions
 
-enum CellType {
-  BoolT,
-  DateT,
-  EnumT,
-  NumberT
+export enum CellType {
+  Bool,
+  Date,
+  Enum,
+  Number
 }
 
 export type CellValue =
-  | { type: CellType.BoolT; value: boolean }
-  | { type: CellType.DateT; value: Date }
-  | { type: CellType.EnumT; value: string }
-  | { type: CellType.NumberT; value: number };
+  | { type: CellType.Bool; value: boolean }
+  | { type: CellType.Date; value: Date }
+  | { type: CellType.Enum; value: string }
+  | { type: CellType.Number; value: number };
 
-export const mkCellValue = (value: CellValue["value"]): CellValue => {
-  if (typeof value === "boolean") return { type: CellType.BoolT, value };
-  if (typeof value === "string") return { type: CellType.EnumT, value };
-  if (typeof value === "number") return { type: CellType.NumberT, value };
-  if (value instanceof Date) return { type: CellType.DateT, value };
+export const Value = (value: CellValue["value"]): CellValue => {
+  if (typeof value === "boolean") return { type: CellType.Bool, value };
+  if (typeof value === "string") return { type: CellType.Enum, value };
+  if (typeof value === "number") return { type: CellType.Number, value };
+  if (value instanceof Date) return { type: CellType.Date, value };
   throw new CellTypeError(value);
 };
 
@@ -46,13 +46,13 @@ export const renderCell = ({
   ...props
 }: RenderCellProps<CellValue>): JSX.Element => {
   switch (cell.type) {
-    case CellType.BoolT:
+    case CellType.Bool:
       return <BoolCell value={cell.value} {...props} />;
-    case CellType.EnumT:
+    case CellType.Enum:
       return <EnumCell value={cell.value} {...props} />;
-    case CellType.NumberT:
+    case CellType.Number:
       return <NumberCell value={cell.value} {...props} />;
-    case CellType.DateT:
+    case CellType.Date:
       return <DateCell value={cell.value} {...props} />;
   }
 };

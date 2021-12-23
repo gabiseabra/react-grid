@@ -1,5 +1,5 @@
 import "./styles.scss";
-import { mkCellValue } from "./Grid";
+import * as Cell from "./Cell";
 import * as Grid from "./Grid";
 
 const numColumns = 100;
@@ -12,35 +12,33 @@ const initialColumns = Array(numColumns)
     label: `C${i}`,
     width: 100
   }));
-const data = Array(numRows)
+const rows = Array(numRows)
   .fill(null)
   .map((_, i) =>
     initialColumns.reduce(
       (acc, { id }, j) => ({
-        [id]: mkCellValue(`${i},${j}`),
+        [id]: Cell.Value(`${i},${j}`),
         ...acc
       }),
       {}
     )
   );
 
-export default function App() {
+export default function App(): JSX.Element {
   return (
     <Grid.Container>
-      {(containerProps) => (
-        // <Grid.Header initialColumns={initialColumns}>
-        //   {(headerProps) => (
+      {({ width, height }) => (
         <Grid.Body
-          readOnly
-          data={data}
+          data={null}
+          columns={initialColumns}
+          rows={rows}
+          width={width}
+          height={height - 30}
           columnWidth={100}
           rowHeight={20}
-          {...containerProps}
-          columns={initialColumns}
-        // {...headerProps}
+          renderCol={Cell.ColComponent}
+          renderRow={Cell.RowComponent}
         />
-        //   )}
-        // </Grid.Header>
       )}
     </Grid.Container>
   );
