@@ -9,8 +9,11 @@ type RenderCellProps<T> = {
 };
 
 export class CellTypeError extends Error {
-  constructor(public value: any) {
+  value: any;
+
+  constructor(value: any) {
     super("Invalid cell type:" + typeof value);
+    this.value = value;
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
@@ -18,7 +21,7 @@ export class CellTypeError extends Error {
 // Begin cell type definitions
 
 enum CellType {
-  BoolT = 1,
+  BoolT,
   DateT,
   EnumT,
   NumberT
@@ -30,7 +33,7 @@ export type CellValue =
   | { type: CellType.EnumT; value: string }
   | { type: CellType.NumberT; value: number };
 
-export const CellValue = (value: CellValue["value"]): CellValue => {
+export const mkCellValue = (value: CellValue["value"]): CellValue => {
   if (typeof value === "boolean") return { type: CellType.BoolT, value };
   if (typeof value === "string") return { type: CellType.EnumT, value };
   if (typeof value === "number") return { type: CellType.NumberT, value };

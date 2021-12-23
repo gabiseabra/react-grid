@@ -1,10 +1,9 @@
-import React from "react";
-import AutoSizer from "react-virtualized-auto-sizer";
-import { Grid, CellValue } from "./Grid";
-import { Header } from "./Grid/Header";
-import compose from "./lib/compose";
-import { hoc, withProps } from "./lib/hoc";
-import "./styles.css";
+import "./styles.scss";
+import React, { useRef } from "react";
+import useComponentSize from '@rehooks/component-size'
+import { mkCellValue } from "./Grid";
+import * as Grid from "./Grid";
+import { ReactWindowScroller } from "./lib/WindowScroller";
 
 const numColumns = 100;
 const numRows = 500;
@@ -21,7 +20,7 @@ const data = Array(numRows)
   .map((_, i) =>
     initialColumns.reduce(
       (acc, { id }, j) => ({
-        [id]: CellValue(`${i},${j}`),
+        [id]: mkCellValue(`${i},${j}`),
         ...acc
       }),
       {}
@@ -29,23 +28,32 @@ const data = Array(numRows)
   );
 
 export default function App() {
+  const scrollRef: React.Ref<HTMLDivElement> = useRef(null)
+  const { width, height } = useComponentSize(scrollRef)
   return (
-    <AutoSizer>
-      {({ width, height }) => (
-        <Header style={{ width }} initialColumns={initialColumns}>
-          {({ columns }) => (
-            <Grid
-              readOnly
-              columns={columns}
-              data={data}
-              width={width}
-              height={height}
-              columnWidth={100}
-              rowHeight={20}
-            />
-          )}
-        </Header>
-      )}
-    </AutoSizer>
+    <div ref={scrollRef} className="scroller">
+      {/* @ts-ignore */}
+      <ReactWindowScroller isGrid scrollElementRef={scrollRef.current}>
+        {({ ref, outerRef, style, onScroll }: any) => (
+          <Grid.Header initialColumns={initialColumns}>
+            {({ columns }) => (
+              <Grid.Body
+                readOnly
+                columns={columns}
+                data={data}
+                width={width - 16}
+                height={height}
+                columnWidth={100}
+                rowHeight={20}
+                innerRef={ref}
+                outerRef={outerRef}
+                style={style}
+                onScroll={onScroll}
+              />
+            )}
+          </Grid.Header>
+        )}
+      </ReactWindowScroller>
+    </div>
   );
 }
