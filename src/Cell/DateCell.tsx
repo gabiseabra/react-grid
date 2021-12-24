@@ -4,5 +4,5 @@ type DateCellProps = {
 };
 
 export function DateCell({ value, readOnly }: DateCellProps): JSX.Element {
-  return <input type="date" value={value?.toISOString()} readOnly={readOnly} />;
+  return <input type="date" value={value?.toISOString().split('T')[0]} readOnly={readOnly} />;
 }
