@@ -41,5 +41,5 @@ export const renderValue = <C extends ColDict>({
 };
 
 export const renderCell = <C extends ColDict>(props: CellProps<ColT<C>, RowT<C>>): JSX.Element => (
-  <div style={props.style}>{renderValue(props)}</div>
+  <div key={props.key} style={props.style}>{renderValue(props)}</div>
 )

@@ -5,6 +5,7 @@ import * as RV from 'react-virtualized'
 import { useMemo } from "react";
 import { mkSpreadsheetProps } from "./lib/Spreadsheet";
 import { arbitraryValue } from "./Cell/arbitrary";
+import { columnIndexRange, composeRanges, rowIndexRange } from "./lib/multiRangeRenderer";
 
 const Columns = {
   db_string0: { type: "string" },
@@ -66,18 +67,26 @@ export default function App(): JSX.Element {
     rows,
     columnHeight: 50,
     columnWidth: () => 100,
-    rowWidth: 0,
-    rowHeight: () => 30,
-    renderRow: () => null,
-    renderCol: () => null,
+    rowWidth: 50,
+    rowHeight: () => 50,
+    renderRow: ({ rowIndex, style, key }) => <div key={key} style={style}>{rowIndex}</div>,
+    renderCol: ({ columnIndex, style, key }) => <div key={key} style={style}>{columnIndex}</div>,
     renderCell: Cell.renderCell,
   }), [])
+  const cellRangeRenderer = useMemo(() => composeRanges(
+    rowIndexRange(0),
+    columnIndexRange(0),
+    x => x
+  ), [])
   return (
     <Grid.Container>
       {({ width, height }) => (
         <RV.Grid
           width={width}
           height={height}
+          overscanColumnCount={0}
+          overscanRowCount={0}
+          cellRangeRenderer={cellRangeRenderer}
           {...spreadsheetProps}
         />
       )}
