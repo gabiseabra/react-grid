@@ -20,7 +20,7 @@ export type CellProps<C, R> = {
   rowIndex: number;
 } & CommonProps;
 
-export type SpreadsheetOptions<C, R> = {
+export type TableOptions<C, R> = {
   columns: C[]
   rows: R[]
   /** Height of column heading cells */
@@ -37,14 +37,14 @@ export type SpreadsheetOptions<C, R> = {
 
 const noop = () => null
 
-export const mkSpreadsheetCellRenderer = <C, R>({
+export const tableGridCellRenderer = <C, R>({
   columns,
   rows,
   renderCol,
   renderRow,
   renderCell,
   renderPlaceholder = noop
-}: SpreadsheetOptions<C, R>): RV.GridCellRenderer => ({
+}: TableOptions<C, R>): RV.GridCellRenderer => ({
   columnIndex,
   rowIndex,
   key,
@@ -75,8 +75,8 @@ export const mkSpreadsheetCellRenderer = <C, R>({
     })
   }
 
-export const mkSpreadsheetProps = <C, R>(options: SpreadsheetOptions<C, R>) => ({
-  cellRenderer: mkSpreadsheetCellRenderer(options),
+export const tableGridProps = <C, R>(options: TableOptions<C, R>) => ({
+  cellRenderer: tableGridCellRenderer(options),
   columnCount: options.columns.length + 1,
   rowCount: options.rows.length + 1,
   columnWidth: ({ index }: RV.Index): number => (index === 0 ? options.rowWidth : options.columnWidth({ index: index - 1 })),

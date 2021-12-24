@@ -21,12 +21,12 @@ export const rowIndexRange = (ix: number): Endo<Box> => ([[minX, _minY], [maxX, 
   [maxX, ix],
 ]
 
-
 export const columnIndexRange = (ix: number): Endo<Box> => ([[_minX, minY], [_maxX, maxY]]) => [
   [ix, minY],
   [ix, maxY],
 ]
 
+// Adapted from https://github.com/bvaughn/react-virtualized/blob/abe0530a512639c042e74009fbf647abdb52d661/source/Grid/defaultCellRangeRenderer.js#L11
 export function multiRangeRenderer({
   parent,
   cellCache,
@@ -106,16 +106,10 @@ export function multiRangeRenderer({
     }
   }
 
-  console.log({
-    cells,
-    cellsRendered,
-    boxes
-  })
   return cells;
 }
 
 export const composeRanges = (...fns: Endo<Box>[]): RV.GridCellRangeRenderer => (props) => {
   const box0 = box(props)
-  console.log(props)
   return multiRangeRenderer(props, fns.map((fn) => fn(box0)))
 }

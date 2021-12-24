@@ -1,11 +1,10 @@
 import "./styles.scss";
-import * as Cell from "./Cell";
-import * as Grid from "./Grid";
-import * as RV from 'react-virtualized'
 import { useMemo } from "react";
-import { mkSpreadsheetProps } from "./lib/Spreadsheet";
+import * as RV from 'react-virtualized'
+import * as Cell from "./Cell";
 import { arbitraryValue } from "./Cell/arbitrary";
-import { columnIndexRange, composeRanges, rowIndexRange } from "./lib/multiRangeRenderer";
+import { tableGridProps } from "./lib/Table";
+import { columnIndexRange, composeRanges, rowIndexRange } from "./lib/Range";
 
 const Columns = {
   db_string0: { type: "string" },
@@ -62,7 +61,7 @@ const columns: ColT[] = Object.entries(Columns).map(([id, col]) => ({ id, ...col
 const rows: RowT[] = Array(1000).fill(null).map((_, i) => mkRow(i))
 
 export default function App(): JSX.Element {
-  const spreadsheetProps = useMemo(() => mkSpreadsheetProps({
+  const gridProps = useMemo(() => tableGridProps({
     columns,
     rows,
     columnHeight: 50,
@@ -79,7 +78,7 @@ export default function App(): JSX.Element {
     x => x
   ), [])
   return (
-    <Grid.Container>
+    <RV.AutoSizer>
       {({ width, height }) => (
         <RV.Grid
           width={width}
@@ -87,9 +86,9 @@ export default function App(): JSX.Element {
           overscanColumnCount={0}
           overscanRowCount={0}
           cellRangeRenderer={cellRangeRenderer}
-          {...spreadsheetProps}
+          {...gridProps}
         />
       )}
-    </Grid.Container>
+    </RV.AutoSizer>
   );
 }

@@ -1,4 +1,4 @@
-import { CellProps } from "../lib/Spreadsheet";
+import { CellProps } from "../lib/Table";
 import { BoolCell } from "./BoolCell";
 import { DateCell } from "./DateCell";
 import { EnumCell } from "./EnumCell";
