@@ -18,3 +18,21 @@ input {
   margin-top: 50px;
   font-family: sans-serif;
 }
+
+.ReactVirtualized__Grid__innerScrollContainer {
+  overflow: unset !important;
+  position: unset !important;
+}
+
+.grid-column-heading {
+  position: sticky;
+  height: 50px;
+  z-index: 1;
+  top: 0;
+  & > div {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    background: whitesmoke;
+  }
+}

@@ -1,33 +1,57 @@
+import pipe from '@arrows/composition/pipe'
 import * as RV from 'react-virtualized'
-import React from "react";
-
-type Coord = [number, number]
-type Box = [Coord, Coord]
+import React, { ReactNode } from "react";
 
 type Endo<T> = (x: T) => T
 
-export const box = ({
+const id = <T extends unknown>(x: T): T => x
+
+type Coord = [number, number]
+type BBox = [Coord, Coord]
+
+export const BBox = ({
   columnStartIndex,
   columnStopIndex,
   rowStartIndex,
   rowStopIndex
-}: RV.GridCellRangeProps): Box => [
+}: RV.GridCellRangeProps): BBox => [
     [columnStartIndex, rowStartIndex],
     [columnStopIndex, rowStopIndex]
   ]
 
-export const rowIndexRange = (ix: number): Endo<Box> => ([[minX, _minY], [maxX, _maxY]]) => [
-  [minX, ix],
-  [maxX, ix],
-]
+type Range = {
+  bbox: BBox,
+  getNodes?: Endo<React.ReactNode[]>
+}
 
-export const columnIndexRange = (ix: number): Endo<Box> => ([[_minX, minY], [_maxX, maxY]]) => [
-  [ix, minY],
-  [ix, maxY],
-]
+export const Range = (props: RV.GridCellRangeProps): Range => ({ bbox: BBox(props) })
+
+export const rowIndexRange = (ix: number): Endo<Range> => ({ bbox: [[minX, _minY], [maxX, _maxY]] }) => ({
+  bbox: [
+    [minX, ix],
+    [maxX, ix],
+  ]
+})
+
+export const columnIndexRange = (ix: number): Endo<Range> => ({ bbox: [[_minX, minY], [_maxX, maxY]] }) => ({
+  bbox: [
+    [ix, minY],
+    [ix, maxY],
+  ]
+})
+
+export const mapRange = (fn: Endo<ReactNode[]>): Endo<Range> => ({ bbox, getNodes }) => ({
+  bbox,
+  getNodes: pipe(getNodes || id, fn)
+})
+
+export const renderRanges = (...fns: Endo<Range>[]): RV.GridCellRangeRenderer => (props) => {
+  const initialRange = Range(props)
+  return multiRangeRenderer(fns.map((fn) => fn(initialRange)))(props)
+}
 
 // Adapted from https://github.com/bvaughn/react-virtualized/blob/abe0530a512639c042e74009fbf647abdb52d661/source/Grid/defaultCellRangeRenderer.js#L11
-export function multiRangeRenderer({
+export const multiRangeRenderer = (ranges: Range[]): RV.GridCellRangeRenderer => ({
   parent,
   cellCache,
   cellRenderer,
@@ -39,11 +63,14 @@ export function multiRangeRenderer({
   verticalOffsetAdjustment,
   visibleColumnIndices,
   visibleRowIndices,
-}: RV.GridCellRangeProps, boxes: Box[]): React.ReactNode[] {
+}) => {
   const cellsRendered: { [k: string]: boolean } = {};
-  const cells: React.ReactNode[] = [];
+  const nodes: React.ReactNode[] = [];
 
-  for (const [[columnStartIndex, rowStartIndex], [columnStopIndex, rowStopIndex]] of boxes) {
+  for (let i = 0; i < ranges.length; ++i) {
+    const range = ranges[i]
+    const [[columnStartIndex, rowStartIndex], [columnStopIndex, rowStopIndex]] = range.bbox
+    let cells: React.ReactNode[] = [];
     for (let rowIndex = rowStartIndex; rowIndex <= rowStopIndex; rowIndex++) {
       const rowDatum = rowSizeAndPositionManager.getSizeAndPositionOfCell(rowIndex);
       for (let columnIndex = columnStartIndex; columnIndex <= columnStopIndex; columnIndex++) {
@@ -104,12 +131,10 @@ export function multiRangeRenderer({
         if (cell) cells.push(cell);
       }
     }
+    if (range.getNodes) cells = range.getNodes(cells)
+
+    nodes.push(...cells)
   }
 
-  return cells;
-}
-
-export const composeRanges = (...fns: Endo<Box>[]): RV.GridCellRangeRenderer => (props) => {
-  const box0 = box(props)
-  return multiRangeRenderer(props, fns.map((fn) => fn(box0)))
+  return nodes;
 }

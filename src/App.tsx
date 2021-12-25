@@ -1,9 +1,10 @@
 import "./styles.scss";
+import pipe from '@arrows/composition/pipe'
 import { useMemo } from "react";
 import * as RV from 'react-virtualized'
 import * as T from "./lib/Typed";
 import { tableCellRenderer } from "./lib/Table";
-import { columnIndexRange, composeRanges, rowIndexRange } from "./lib/Range";
+import { mapRange, renderRanges, rowIndexRange } from "./lib/Range";
 import { CellValue, CellTypes } from "./Types";
 import { arbitraryValue } from "./Types/arbitrary";
 
@@ -78,14 +79,20 @@ export default function App(): JSX.Element {
             <CellValue readOnly cell={T.getCell(cell.column.value, cell.row.value)} />
           </div>
         )
-      case "column": return <div key={props.key} style={props.style}>{cell.column.index}</div>
+      case "column": return <div className="col" key={props.key} style={props.style}>{cell.column.value.id}</div>
       case "row": return <div key={props.key} style={props.style}>{cell.row.index}</div>
       default: return null
     }
   }), [])
-  const cellRangeRenderer = useMemo(() => composeRanges(
-    rowIndexRange(0),
-    columnIndexRange(0),
+  const cellRangeRenderer = useMemo(() => renderRanges(
+    // render sticky column headings
+    pipe(
+      rowIndexRange(0),
+      mapRange((cells) => [
+        <div key="col" className="grid-column-heading"><div>{cells}</div></div>
+      ])
+    ),
+    // render visible ranges
     x => x
   ), [])
   return (
