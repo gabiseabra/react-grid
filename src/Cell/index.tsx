@@ -1,8 +1,8 @@
-import { CellProps } from "../lib/Table";
 import { BoolCell } from "./BoolCell";
 import { DateCell } from "./DateCell";
 import { EnumCell } from "./EnumCell";
 import { NumberCell } from "./NumberCell";
+import * as RV from 'react-virtualized'
 
 export type CellTypes = {
   string: string
@@ -23,11 +23,13 @@ export type RowT<C extends ColDict> = {
   [id in keyof C]: CellTypes[C[id]["type"]]
 }
 
+type CellProps<C extends ColDict> = { column: ColT<C>, row: RowT<C> } & RV.GridCellProps
+
 export const renderValue = <C extends ColDict>({
   column,
   row,
   ...props
-}: CellProps<ColT<C>, RowT<C>>): JSX.Element => {
+}: CellProps<C>): JSX.Element => {
   switch (column.type) {
     case "boolean":
       return <BoolCell readOnly value={row[column.id] as boolean} {...props} />;
@@ -40,6 +42,6 @@ export const renderValue = <C extends ColDict>({
   }
 };
 
-export const renderCell = <C extends ColDict>(props: CellProps<ColT<C>, RowT<C>>): JSX.Element => (
+export const renderCell = <C extends ColDict>(props: CellProps<C>): JSX.Element => (
   <div key={props.key} style={props.style}>{renderValue(props)}</div>
 )

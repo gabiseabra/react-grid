@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import * as RV from 'react-virtualized'
 import * as Cell from "./Cell";
 import { arbitraryValue } from "./Cell/arbitrary";
-import { tableGridProps } from "./lib/Table";
+import { tableCellRenderer } from "./lib/Table";
 import { columnIndexRange, composeRanges, rowIndexRange } from "./lib/Range";
 
 const Columns = {
@@ -60,17 +60,27 @@ const columns: ColT[] = Object.entries(Columns).map(([id, col]) => ({ id, ...col
 
 const rows: RowT[] = Array(1000).fill(null).map((_, i) => mkRow(i))
 
+const table = { columns, rows }
+
 export default function App(): JSX.Element {
-  const gridProps = useMemo(() => tableGridProps({
-    columns,
-    rows,
-    columnHeight: 50,
-    columnWidth: () => 100,
-    rowWidth: 50,
-    rowHeight: () => 50,
-    renderRow: ({ rowIndex, style, key }) => <div key={key} style={style}>{rowIndex}</div>,
-    renderCol: ({ columnIndex, style, key }) => <div key={key} style={style}>{columnIndex}</div>,
-    renderCell: Cell.renderCell,
+  const layoutProps = useMemo(() => ({
+    columnCount: table.columns.length + 1,
+    rowCount: table.rows.length + 1,
+    columnWidth({ index }: RV.Index) { return index === 0 ? 50 : 130 },
+    rowHeight({ index }: RV.Index) { return index === 0 ? 50 : 30 },
+  }), [])
+  const cellRenderer = useMemo(() => tableCellRenderer(table, ({ cell, ...props }) => {
+    switch (cell.kind) {
+      case "cell":
+        return Cell.renderCell({
+          column: cell.column.value,
+          row: cell.row.value,
+          ...props
+        })
+      case "column": return <div key={props.key} style={props.style}>{cell.column.index}</div>
+      case "row": return <div key={props.key} style={props.style}>{cell.row.index}</div>
+      default: return null
+    }
   }), [])
   const cellRangeRenderer = useMemo(() => composeRanges(
     rowIndexRange(0),
@@ -86,7 +96,8 @@ export default function App(): JSX.Element {
           overscanColumnCount={0}
           overscanRowCount={0}
           cellRangeRenderer={cellRangeRenderer}
-          {...gridProps}
+          cellRenderer={cellRenderer}
+          {...layoutProps}
         />
       )}
     </RV.AutoSizer>

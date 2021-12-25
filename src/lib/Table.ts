@@ -1,84 +1,38 @@
 import React from "react";
 import * as RV from 'react-virtualized'
 
-type CommonProps = { key: string, style: React.CSSProperties }
+export type Table<C, R>
+  = { columns: C[], rows: R[] }
 
-export type ColProps<C> = {
-  value: C,
-  columnIndex: number,
-} & CommonProps
+export type Ix<C> = { value: C, index: number }
 
-export type RowProps<R> = {
-  value: R,
-  rowIndex: number,
-} & CommonProps
+export type Cell<C, R>
+  // { columnIndex > 0, rowIndex > 0 }
+  = { kind: "cell", column: Ix<C>, row: Ix<R> }
+  // { columnIndex = 0, rowIndex > 0 }
+  | { kind: "row", column: undefined, row: Ix<R> }
+  // { columnIndex > 0, rowIndex = 0 }
+  | { kind: "column", column: Ix<C>, row: undefined }
+  // { columnIndex = 0, rowIndex = 0 }
+  | { kind: "placeholder", column: undefined, row: undefined }
 
-export type CellProps<C, R> = {
-  column: C;
-  row: R,
-  columnIndex: number;
-  rowIndex: number;
-} & CommonProps;
+type Pos = { rowIndex: number, columnIndex: number }
 
-export type TableOptions<C, R> = {
-  columns: C[]
-  rows: R[]
-  /** Height of column heading cells */
-  columnHeight: number,
-  columnWidth: (ix: RV.Index) => number,
-  /** Width of row heading cells */
-  rowWidth: number,
-  rowHeight: (ix: RV.Index) => number,
-  renderCol: (props: ColProps<C>) => React.ReactNode
-  renderRow: (props: RowProps<R>) => React.ReactNode
-  renderCell: (props: CellProps<C, R>) => React.ReactNode
-  renderPlaceholder?: (props: CommonProps) => React.ReactNode
+export const mkCell = <C, R>({ columns, rows }: Table<C, R>) => ({ rowIndex, columnIndex }: Pos): Cell<C, R> => {
+  const column = columnIndex === 0 ? undefined : { value: columns[columnIndex - 1], index: columnIndex - 1 }
+  const row = rowIndex === 0 ? undefined : { value: rows[rowIndex - 1], index: rowIndex - 1 }
+  if (column && row) return { kind: "cell", column, row }
+  else if (row) return { kind: "row", column: undefined, row }
+  else if (column) return { kind: "column", column, row: undefined }
+  else return { kind: "placeholder", column: undefined, row: undefined }
 }
 
-const noop = () => null
-
-export const tableGridCellRenderer = <C, R>({
-  columns,
-  rows,
-  renderCol,
-  renderRow,
-  renderCell,
-  renderPlaceholder = noop
-}: TableOptions<C, R>): RV.GridCellRenderer => ({
-  columnIndex,
-  rowIndex,
-  key,
-  style,
-}) => {
-    if (rowIndex === 0 && columnIndex === 0) return renderPlaceholder({ key, style })
-    const column = columns[columnIndex - 1]
-    const row = rows[rowIndex - 1]
-    if (rowIndex === 0) return renderCol({
-      key,
-      style,
-      value: column,
-      columnIndex: columnIndex - 1
-    })
-    if (columnIndex === 0) return renderRow({
-      key,
-      style,
-      value: row,
-      rowIndex: rowIndex - 1,
-    })
-    else return renderCell({
-      key,
-      style,
-      column,
-      row,
-      rowIndex: rowIndex - 1,
-      columnIndex: columnIndex - 1
-    })
-  }
-
-export const tableGridProps = <C, R>(options: TableOptions<C, R>) => ({
-  cellRenderer: tableGridCellRenderer(options),
-  columnCount: options.columns.length + 1,
-  rowCount: options.rows.length + 1,
-  columnWidth: ({ index }: RV.Index): number => (index === 0 ? options.rowWidth : options.columnWidth({ index: index - 1 })),
-  rowHeight: ({ index }: RV.Index): number => (index === 0 ? options.columnHeight : options.rowHeight({ index: index - 1 })),
-})
+export function tableCellRenderer<C, R>(
+  table: Table<C, R>,
+  renderCell: (props: { cell: Cell<C, R> } & RV.GridCellProps
+  ) => React.ReactNode): RV.GridCellRenderer {
+  return (props) => renderCell({
+    cell: mkCell(table)(props),
+    ...props
+  })
+}
