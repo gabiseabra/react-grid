@@ -1,10 +1,11 @@
 import "./styles.scss";
 import { useMemo } from "react";
 import * as RV from 'react-virtualized'
-import * as Cell from "./Cell";
-import { arbitraryValue } from "./Cell/arbitrary";
+import * as T from "./lib/Typed";
 import { tableCellRenderer } from "./lib/Table";
 import { columnIndexRange, composeRanges, rowIndexRange } from "./lib/Range";
+import { CellValue, CellTypes } from "./Types";
+import { arbitraryValue } from "./Types/arbitrary";
 
 const Columns = {
   db_string0: { type: "string" },
@@ -48,8 +49,8 @@ const Columns = {
   db_date9: { type: "date" },
 } as const
 
-type ColT = Cell.ColT<typeof Columns>
-type RowT = Cell.RowT<typeof Columns>
+type ColT = T.ColT<typeof Columns, CellTypes>
+type RowT = T.RowT<typeof Columns, CellTypes>
 
 const mkRow = (i: number): RowT => columns.reduce((acc, { id, type }) => ({
   [id]: arbitraryValue(type, i),
@@ -72,11 +73,11 @@ export default function App(): JSX.Element {
   const cellRenderer = useMemo(() => tableCellRenderer(table, ({ cell, ...props }) => {
     switch (cell.kind) {
       case "cell":
-        return Cell.renderCell({
-          column: cell.column.value,
-          row: cell.row.value,
-          ...props
-        })
+        return (
+          <div key={props.key} style={props.style}>
+            <CellValue readOnly cell={T.getCell(cell.column.value, cell.row.value)} />
+          </div>
+        )
       case "column": return <div key={props.key} style={props.style}>{cell.column.index}</div>
       case "row": return <div key={props.key} style={props.style}>{cell.row.index}</div>
       default: return null

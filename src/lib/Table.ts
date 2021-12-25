@@ -29,8 +29,8 @@ export const mkCell = <C, R>({ columns, rows }: Table<C, R>) => ({ rowIndex, col
 
 export function tableCellRenderer<C, R>(
   table: Table<C, R>,
-  renderCell: (props: { cell: Cell<C, R> } & RV.GridCellProps
-  ) => React.ReactNode): RV.GridCellRenderer {
+  renderCell: (props: { cell: Cell<C, R> } & RV.GridCellProps) => React.ReactNode
+): RV.GridCellRenderer {
   return (props) => renderCell({
     cell: mkCell(table)(props),
     ...props
