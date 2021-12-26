@@ -1,6 +1,6 @@
 import "./styles.scss";
 import pipe from 'lodash/fp/pipe'
-import { useEffect, useMemo, useState } from "react";
+import { Ref, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as RV from 'react-virtualized'
 import * as T from "./lib/Typed";
 import { tableCellRenderer } from "./lib/Table";
@@ -9,6 +9,8 @@ import { CellValue, CellTypes } from "./Types";
 import { arbitraryValue } from "./Types/arbitrary";
 import { applyPins, getPinnedRange, usePins } from "./lib/Pin";
 import { stickyRange } from "./lib/stickyRange";
+import { Heading } from "./Heading";
+import { useTableLayout } from "./lib/useTableLayout";
 
 const Columns = {
   db_string0: { type: "string" },
@@ -65,15 +67,16 @@ const columns: ColT[] = Object.entries(Columns).map(([id, col]) => ({ id, ...col
 const rows: RowT[] = Array(1000).fill(null).map((_, i) => mkRow(i))
 
 export default function App(): JSX.Element {
+  const gridRef: Ref<RV.Grid> = useRef(null)
   const [table, setTable] = useState({ columns, rows })
-  const { pins } = usePins(new Set([5, 6, 12]))
+  const { getWidth, setWidth, layoutProps } = useTableLayout({
+    gridRef,
+    table,
+    cellSize: { width: 130, height: 30 },
+    headingSize: { width: 50, height: 50 }
+  })
+  const { pins, addPin, removePin } = usePins(new Set([5, 6, 12]))
   useEffect(() => setTable(({ columns, rows }) => ({ columns: applyPins(pins)(columns), rows })), [pins])
-  const layoutProps = useMemo(() => ({
-    columnCount: table.columns.length + 1,
-    rowCount: table.rows.length + 1,
-    columnWidth({ index }: RV.Index) { return index === 0 ? 50 : 130 },
-    rowHeight({ index }: RV.Index) { return index === 0 ? 50 : 30 },
-  }), [])
   const cellRenderer = useMemo(() => tableCellRenderer(table, ({ cell, ...props }) => {
     switch (cell.kind) {
       case "cell":
@@ -82,7 +85,20 @@ export default function App(): JSX.Element {
             <CellValue readOnly cell={T.getCell(cell.column.value, cell.row.value)} />
           </div>
         )
-      case "column": return <div className="col" key={props.key} style={props.style}>{cell.column.value.id}</div>
+      case "column":
+        const index = cell.column.index
+        const column = cell.column.value
+        return (
+          <div key={props.key} style={props.style}>
+            <Heading
+              column={column}
+              pinned={index < pins.size}
+              setPinned={(pinned) => pinned ? addPin(index) : removePin(index)}
+              size={{ width: getWidth(index), height: 50 }}
+              setWidth={(width) => setWidth(index, width)}
+            />
+          </div>
+        )
       case "row": return <div key={props.key} style={props.style}>{cell.row.index}</div>
       default: return null
     }
@@ -110,6 +126,7 @@ export default function App(): JSX.Element {
     <RV.AutoSizer>
       {({ width, height }) => (
         <RV.Grid
+          ref={gridRef}
           width={width}
           height={height}
           overscanColumnCount={0}

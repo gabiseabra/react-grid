@@ -1,0 +1,30 @@
+.column-heading {
+  background: blue;
+  color: white;
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: space-between;
+  & > span {
+    flex: 1;
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  & > .controls {
+    flex: 0;
+    .pin-control {
+      background: none;
+      border: none;
+      & > * { color: white }
+      &.disabled > * { color: grey }
+    }
+  }
+  & > .react-resizable-handle {
+    flex: 0 5px;
+    height: 100%;
+    cursor: ew-resize;
+  }
+}
