@@ -1,38 +1,45 @@
-import React from "react";
-import * as RV from 'react-virtualized'
-
+// This module provides type checking and querying of a table structure <C> against
+// rows of data <R>.
 export type Table<C, R>
   = { columns: C[], rows: R[] }
 
-export type Ix<C> = { value: C, index: number }
-
-export type Cell<C, R>
-  // { columnIndex > 0, rowIndex > 0 }
-  = { kind: "cell", column: Ix<C>, row: Ix<R> }
-  // { columnIndex = 0, rowIndex > 0 }
-  | { kind: "row", column: undefined, row: Ix<R> }
-  // { columnIndex > 0, rowIndex = 0 }
-  | { kind: "column", column: Ix<C>, row: undefined }
-  // { columnIndex = 0, rowIndex = 0 }
-  | { kind: "placeholder", column: undefined, row: undefined }
-
-type Pos = { rowIndex: number, columnIndex: number }
-
-export const mkCell = <C, R>({ columns, rows }: Table<C, R>) => ({ rowIndex, columnIndex }: Pos): Cell<C, R> => {
-  const column = columnIndex === 0 ? undefined : { value: columns[columnIndex - 1], index: columnIndex - 1 }
-  const row = rowIndex === 0 ? undefined : { value: rows[rowIndex - 1], index: rowIndex - 1 }
-  if (column && row) return { kind: "cell", column, row }
-  else if (row) return { kind: "row", column: undefined, row }
-  else if (column) return { kind: "column", column, row: undefined }
-  else return { kind: "placeholder", column: undefined, row: undefined }
+// Row data
+export type RowT<C extends Columns<T>, T = any> = {
+  [id in keyof C]: T[C[id]["type"]]
 }
 
-export function tableCellRenderer<C, R>(
-  table: Table<C, R>,
-  renderCell: (props: { cell: Cell<C, R> } & RV.GridCellProps) => React.ReactNode
-): RV.GridCellRenderer {
-  return (props) => renderCell({
-    cell: mkCell(table)(props),
-    ...props
-  })
+// Table structure represented as a map of column names to a type in T, where T is
+// a proxy map of strings to js types. e.g.:
+// type Types = { "string": string, "number": number }
+// const columns: Columns<Types> = { a: { type: "string"}, b: { type: "number" } }
+export type Columns<T> = {
+  [k: string]: {
+    type: keyof T
+  } & Record<string, any>
+}
+
+type ColTMap<C extends Columns<T>, T = any> = { [id in keyof C]: { id: id } & C[id] }
+
+// Sum type of columns in C, used for querying rows
+export type ColT<C extends Columns<T>, T = any> = ColTMap<C, T>[keyof C]
+
+export function ColT<C extends Columns<T>, T = any>(columns: C, id: keyof C): ColT<C, T> {
+  return { id, ...columns[id] }
+}
+
+type CellTMap<T = any> = { [type in keyof T]: { type: type, value: T[type] } }
+
+// Sum type of types in T, witness that the column matches a type in a row, used
+// to narrow arbitrary db values.
+export type CellT<T = any> = CellTMap<T>[keyof T]
+
+export function getCell<K extends keyof C, C extends Columns<T>, T = any>(column: ColTMap<C, T>[K], row: RowT<C, T>): CellTMap<T>[C[K]["type"]];
+export function getCell<C extends Columns<T>, T = any>(column: ColT<C, T>, row: RowT<C, T>): CellT<T> {
+  return { type: column.type, value: getValue(column.id, row) }
+}
+
+// Get value of column K in a row
+export function getValue<K extends keyof C, C extends Columns<T>, T = any>(id: K, row: RowT<C, T>): T[C[K]["type"]];
+export function getValue<C extends Columns<T>, T = any>(id: keyof C, row: RowT<C, T>): T[keyof T] {
+  return row[id]
 }

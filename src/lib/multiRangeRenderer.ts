@@ -1,7 +1,6 @@
 import * as RV from 'react-virtualized'
 import React, { ReactNode } from "react";
-
-type Endo<T> = (x: T) => T
+import { Endo } from './fp'
 
 export type Coord = [number, number]
 export type BBox = [Coord, Coord]

@@ -1,7 +1,7 @@
 import cx from 'classnames'
 import { CSSProperties } from "react"
 import { Endo } from './fp'
-import { wrapNodes, Range } from './Range'
+import { wrapNodes, Range } from './multiRangeRenderer'
 
 const translate = ({ x, y }: { x?: number, y?: number }): string | undefined => {
   if (typeof x != "undefined" && typeof y != "undefined") return `translate(${x}px, ${y}px)`

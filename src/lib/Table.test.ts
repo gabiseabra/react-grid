@@ -1,4 +1,4 @@
-import { CellT, ColT, getCell, getValue, RowT } from "./Typed"
+import { CellT, ColT, getCell, getValue, RowT } from "./Table"
 
 type TypeMap = {
   string: string,
@@ -23,7 +23,7 @@ const rows: RowT<typeof Cols, TypeMap>[] = [
   { a: "eyy", b: 123, c: true },
 ]
 
-describe('Types', () => {
+describe('Table', () => {
   describe("ColT", () => {
     it("Type checks", () => {
       const test: ColT<typeof Cols, TypeMap> = { id: "a", type: "string" }

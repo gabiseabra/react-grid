@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react"
 import { Endo } from "./fp"
-import { columnIndexRange, emptyRange, Range } from "./Range"
+import { columnIndexRange, emptyRange, Range } from "./multiRangeRenderer"
 
 export type Pins = Set<number>
 

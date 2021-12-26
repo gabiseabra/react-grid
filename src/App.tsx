@@ -1,13 +1,13 @@
 import "./styles.scss";
 import pipe from 'lodash/fp/pipe'
-import { Ref, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Ref, useEffect, useMemo, useRef, useState } from "react";
 import * as RV from 'react-virtualized'
-import * as T from "./lib/Typed";
-import { tableCellRenderer } from "./lib/Table";
-import { renderRanges, rowIndexRange } from "./lib/Range";
+import * as T from "./lib/Table";
+import { tableRenderer } from "./lib/tableRenderer";
+import { renderRanges, rowIndexRange } from "./lib/multiRangeRenderer";
 import { CellValue, CellTypes } from "./Types";
 import { arbitraryValue } from "./Types/arbitrary";
-import { applyPins, getPinnedRange, usePins } from "./lib/Pin";
+import { applyPins, getPinnedRange, usePins } from "./lib/usePins";
 import { stickyRange } from "./lib/stickyRange";
 import { Heading } from "./Heading";
 import { useTableLayout } from "./lib/useTableLayout";
@@ -77,7 +77,7 @@ export default function App(): JSX.Element {
   })
   const { pins, addPin, removePin } = usePins(new Set([5, 6, 12]))
   useEffect(() => setTable(({ columns, rows }) => ({ columns: applyPins(pins)(columns), rows })), [pins])
-  const cellRenderer = useMemo(() => tableCellRenderer(table, ({ cell, ...props }) => {
+  const cellRenderer = useMemo(() => tableRenderer(table, ({ cell, ...props }) => {
     switch (cell.kind) {
       case "cell":
         return (
