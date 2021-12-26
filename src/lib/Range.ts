@@ -1,13 +1,10 @@
-import pipe from '@arrows/composition/pipe'
 import * as RV from 'react-virtualized'
 import React, { ReactNode } from "react";
 
 type Endo<T> = (x: T) => T
 
-const id = <T extends unknown>(x: T): T => x
-
-type Coord = [number, number]
-type BBox = [Coord, Coord]
+export type Coord = [number, number]
+export type BBox = [Coord, Coord]
 
 export const BBox = ({
   columnStartIndex,
@@ -19,31 +16,40 @@ export const BBox = ({
     [columnStopIndex, rowStopIndex]
   ]
 
-type Range = {
-  bbox: BBox,
-  getNodes?: Endo<React.ReactNode[]>
+type GridFn<T> = (x: T, props: { bbox: BBox } & RV.GridCellRangeProps) => T
+
+export type Range = {
+  bbox?: BBox,
+  getNodes: GridFn<ReactNode[]>
 }
 
-export const Range = (props: RV.GridCellRangeProps): Range => ({ bbox: BBox(props) })
+export const Range = (props: RV.GridCellRangeProps): Range => ({ bbox: BBox(props), getNodes: (x) => x })
 
-export const rowIndexRange = (ix: number): Endo<Range> => ({ bbox: [[minX, _minY], [maxX, _maxY]] }) => ({
-  bbox: [
-    [minX, ix],
-    [maxX, ix],
-  ]
+export const emptyRange: Endo<Range> = ({ getNodes }) => ({ bbox: undefined, getNodes })
+
+export const mapBBox = (fn: Endo<BBox>): Endo<Range> => ({ bbox, getNodes }) => ({
+  bbox: bbox ? fn(bbox) : undefined,
+  getNodes
 })
 
-export const columnIndexRange = (ix: number): Endo<Range> => ({ bbox: [[_minX, minY], [_maxX, maxY]] }) => ({
-  bbox: [
-    [ix, minY],
-    [ix, maxY],
-  ]
-})
-
-export const mapRange = (fn: Endo<ReactNode[]>): Endo<Range> => ({ bbox, getNodes }) => ({
+export const wrapNodes = (fn: GridFn<ReactNode[]>): Endo<Range> => ({ bbox, getNodes }) => ({
   bbox,
-  getNodes: pipe(getNodes || id, fn)
+  getNodes: (nodes, ctx) => fn(getNodes(nodes, ctx), ctx)
 })
+
+export const rowIndexRange = (minY: number, maxY = minY): Endo<Range> => mapBBox(([[minX, _minY], [maxX, _maxY]]) => [
+  [minX, minY],
+  [maxX, maxY],
+])
+
+export const columnIndexRange = (minX: number, maxX = minX): Endo<Range> => mapBBox(([[_minX, minY], [_maxX, maxY]]) => [
+  [minX, minY],
+  [maxX, maxY],
+])
+
+export const shiftX = (x: number): Endo<Range> => mapBBox(([[minX, minY], [maxX, maxY]]) => [[minX + x, minY], [maxX + x, maxY]])
+
+export const shiftY = (y: number): Endo<Range> => mapBBox(([[minX, minY], [maxX, maxY]]) => [[minX, minY + y], [maxX, maxY + y]])
 
 export const renderRanges = (...fns: Endo<Range>[]): RV.GridCellRangeRenderer => (props) => {
   const initialRange = Range(props)
@@ -51,24 +57,26 @@ export const renderRanges = (...fns: Endo<Range>[]): RV.GridCellRangeRenderer =>
 }
 
 // Adapted from https://github.com/bvaughn/react-virtualized/blob/abe0530a512639c042e74009fbf647abdb52d661/source/Grid/defaultCellRangeRenderer.js#L11
-export const multiRangeRenderer = (ranges: Range[]): RV.GridCellRangeRenderer => ({
-  parent,
-  cellCache,
-  cellRenderer,
-  columnSizeAndPositionManager,
-  horizontalOffsetAdjustment,
-  isScrolling,
-  rowSizeAndPositionManager,
-  styleCache,
-  verticalOffsetAdjustment,
-  visibleColumnIndices,
-  visibleRowIndices,
-}) => {
+export const multiRangeRenderer = (ranges: Range[]): RV.GridCellRangeRenderer => (props) => {
+  const {
+    parent,
+    cellCache,
+    cellRenderer,
+    columnSizeAndPositionManager,
+    horizontalOffsetAdjustment,
+    isScrolling,
+    rowSizeAndPositionManager,
+    styleCache,
+    verticalOffsetAdjustment,
+    visibleColumnIndices,
+    visibleRowIndices,
+  } = props
   const cellsRendered: { [k: string]: boolean } = {};
   const nodes: React.ReactNode[] = [];
 
   for (let i = 0; i < ranges.length; ++i) {
     const range = ranges[i]
+    if (!range.bbox) continue;
     const [[columnStartIndex, rowStartIndex], [columnStopIndex, rowStopIndex]] = range.bbox
     let cells: React.ReactNode[] = [];
     for (let rowIndex = rowStartIndex; rowIndex <= rowStopIndex; rowIndex++) {
@@ -131,7 +139,9 @@ export const multiRangeRenderer = (ranges: Range[]): RV.GridCellRangeRenderer =>
         if (cell) cells.push(cell);
       }
     }
-    if (range.getNodes) cells = range.getNodes(cells)
+    if (!cells.length) continue;
+
+    if (range.getNodes) cells = range.getNodes(cells, { bbox: range.bbox, ...props })
 
     nodes.push(...cells)
   }

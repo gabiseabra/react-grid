@@ -24,15 +24,17 @@ input {
   position: unset !important;
 }
 
-.grid-column-heading {
+.col {
+  background: whitesmoke;
+}
+
+.sticky-top {
   position: sticky;
-  height: 50px;
-  z-index: 1;
   top: 0;
-  & > div {
-    position: relative;
-    height: 100%;
-    width: 100%;
-    background: whitesmoke;
-  }
+  z-index: 1;
+}
+.sticky-left {
+  position: sticky;
+  left: 0;
+  z-index: 1;
 }

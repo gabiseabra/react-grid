@@ -12,7 +12,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "clean": "rm -rf ./build ./node_modules/.cache"
   },
   "browserslist": [
     ">0.2%",
@@ -21,6 +22,7 @@
     "not op_mini all"
   ],
   "dependencies": {
+    "@arrows/array": "^1.4.1",
     "@arrows/composition": "^1.2.2",
     "@rehooks/component-size": "^1.0.3",
     "@types/faker": "^5.5.9",
@@ -38,6 +40,7 @@
   },
   "devDependencies": {
     "@types/jest": "^27.0.3",
+    "@types/lodash": "^4.14.178",
     "@types/node": "^17.0.4",
     "@types/react": "17.0.20",
     "@types/react-dom": "17.0.9",

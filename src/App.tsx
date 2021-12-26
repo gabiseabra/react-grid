@@ -1,12 +1,14 @@
 import "./styles.scss";
-import pipe from '@arrows/composition/pipe'
-import { useMemo } from "react";
+import pipe from 'lodash/fp/pipe'
+import { useEffect, useMemo, useState } from "react";
 import * as RV from 'react-virtualized'
 import * as T from "./lib/Typed";
 import { tableCellRenderer } from "./lib/Table";
-import { mapRange, renderRanges, rowIndexRange } from "./lib/Range";
+import { renderRanges, rowIndexRange } from "./lib/Range";
 import { CellValue, CellTypes } from "./Types";
 import { arbitraryValue } from "./Types/arbitrary";
+import { applyPins, getPinnedRange, usePins } from "./lib/Pin";
+import { stickyRange } from "./lib/stickyRange";
 
 const Columns = {
   db_string0: { type: "string" },
@@ -62,9 +64,10 @@ const columns: ColT[] = Object.entries(Columns).map(([id, col]) => ({ id, ...col
 
 const rows: RowT[] = Array(1000).fill(null).map((_, i) => mkRow(i))
 
-const table = { columns, rows }
-
 export default function App(): JSX.Element {
+  const [table, setTable] = useState({ columns, rows })
+  const { pins } = usePins(new Set([5, 6, 12]))
+  useEffect(() => setTable(({ columns, rows }) => ({ columns: applyPins(pins)(columns), rows })), [pins])
   const layoutProps = useMemo(() => ({
     columnCount: table.columns.length + 1,
     rowCount: table.rows.length + 1,
@@ -83,18 +86,26 @@ export default function App(): JSX.Element {
       case "row": return <div key={props.key} style={props.style}>{cell.row.index}</div>
       default: return null
     }
-  }), [])
-  const cellRangeRenderer = useMemo(() => renderRanges(
-    // render sticky column headings
-    pipe(
-      rowIndexRange(0),
-      mapRange((cells) => [
-        <div key="col" className="grid-column-heading"><div>{cells}</div></div>
-      ])
-    ),
-    // render visible ranges
-    x => x
-  ), [])
+  }), [table])
+  const cellRangeRenderer = useMemo(() => {
+    const pinnedRange = getPinnedRange(pins, 1)
+    return renderRanges(
+      pipe(
+        pinnedRange,
+        rowIndexRange(0),
+        stickyRange({ key: "pinned-heading", top: true, left: true, style: { zIndex: 2 } })
+      ),
+      pipe(
+        rowIndexRange(0),
+        stickyRange({ key: "heading", top: true })
+      ),
+      pipe(
+        pinnedRange,
+        stickyRange({ key: "pinned", left: true })
+      ),
+      x => x
+    )
+  }, [pins])
   return (
     <RV.AutoSizer>
       {({ width, height }) => (
