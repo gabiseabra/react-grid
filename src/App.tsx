@@ -1,16 +1,18 @@
 import "./styles.scss";
 import pipe from 'lodash/fp/pipe'
-import { Ref, useEffect, useMemo, useRef, useState } from "react";
+import { Ref, useMemo, useRef, useState } from "react";
 import * as RV from 'react-virtualized'
 import * as T from "./lib/Table";
 import { tableRenderer } from "./lib/tableRenderer";
 import { renderRanges, rowIndexRange } from "./lib/multiRangeRenderer";
 import { CellValue, CellTypes } from "./Types";
 import { arbitraryValue } from "./Types/arbitrary";
-import { applyPins, getPinnedRange, usePins } from "./lib/usePins";
 import { stickyRange } from "./lib/stickyRange";
 import { Heading } from "./Heading";
 import { useTableLayout } from "./lib/useTableLayout";
+import { HTML5Backend } from 'react-dnd-html5-backend'
+import { DndProvider } from 'react-dnd'
+import { useColumnPosition } from "./lib/useColumnPosition";
 
 const Columns = {
   db_string0: { type: "string" },
@@ -75,8 +77,13 @@ export default function App(): JSX.Element {
     cellSize: { width: 130, height: 30 },
     headingSize: { width: 50, height: 50 }
   })
-  const { pins, addPin, removePin } = usePins(new Set([5, 6, 12]))
-  useEffect(() => setTable(({ columns, rows }) => ({ columns: applyPins(pins)(columns), rows })), [pins])
+  const {
+    pinCount,
+    isPinned,
+    addPin,
+    removePin,
+    pinnedRange
+  } = useColumnPosition((fn) => setTable(({ columns, rows }) => ({ columns: fn(columns), rows })))
   const cellRenderer = useMemo(() => tableRenderer(table, ({ cell, ...props }) => {
     switch (cell.kind) {
       case "cell":
@@ -92,7 +99,8 @@ export default function App(): JSX.Element {
           <div key={props.key} style={props.style}>
             <Heading
               column={column}
-              pinned={index < pins.size}
+              columnIndex={index}
+              pinned={isPinned(index)}
               setPinned={(pinned) => pinned ? addPin(index) : removePin(index)}
               size={{ width: getWidth(index), height: 50 }}
               setWidth={(width) => setWidth(index, width)}
@@ -103,39 +111,38 @@ export default function App(): JSX.Element {
       default: return null
     }
   }), [table])
-  const cellRangeRenderer = useMemo(() => {
-    const pinnedRange = getPinnedRange(pins, 1)
-    return renderRanges(
-      pipe(
-        pinnedRange,
-        rowIndexRange(0),
-        stickyRange({ key: "pinned-heading", top: true, left: true, style: { zIndex: 2 } })
-      ),
-      pipe(
-        rowIndexRange(0),
-        stickyRange({ key: "heading", top: true })
-      ),
-      pipe(
-        pinnedRange,
-        stickyRange({ key: "pinned", left: true })
-      ),
-      x => x
-    )
-  }, [pins])
+  const cellRangeRenderer = useMemo(() => renderRanges(
+    pipe(
+      pinnedRange,
+      rowIndexRange(0),
+      stickyRange({ key: "pinned-heading", top: true, left: true, style: { zIndex: 2 } })
+    ),
+    pipe(
+      rowIndexRange(0),
+      stickyRange({ key: "heading", top: true })
+    ),
+    pipe(
+      pinnedRange,
+      stickyRange({ key: "pinned", left: true })
+    ),
+    x => x
+  ), [pinCount])
   return (
-    <RV.AutoSizer>
-      {({ width, height }) => (
-        <RV.Grid
-          ref={gridRef}
-          width={width}
-          height={height}
-          overscanColumnCount={0}
-          overscanRowCount={0}
-          cellRangeRenderer={cellRangeRenderer}
-          cellRenderer={cellRenderer}
-          {...layoutProps}
-        />
-      )}
-    </RV.AutoSizer>
+    <DndProvider backend={HTML5Backend}>
+      <RV.AutoSizer>
+        {({ width, height }) => (
+          <RV.Grid
+            ref={gridRef}
+            width={width}
+            height={height}
+            overscanColumnCount={0}
+            overscanRowCount={0}
+            cellRangeRenderer={cellRangeRenderer}
+            cellRenderer={cellRenderer}
+            {...layoutProps}
+          />
+        )}
+      </RV.AutoSizer>
+    </DndProvider>
   );
 }
