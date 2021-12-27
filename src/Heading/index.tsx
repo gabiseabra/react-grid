@@ -12,21 +12,33 @@ type HeadingProps = {
   column: ColT<any>
   columnIndex: number,
   pinned?: boolean,
-  setPinned?: (pinned: boolean) => void,
   size: { width: number, height: number },
-  setWidth: (width: number) => void
+  onDrop?: (ix: number) => void
+  onChangePinned?: (pinned: boolean) => void,
+  onResize?: (size: { width: number, height: number }) => void
 }
 
-export function Heading({ column, columnIndex, pinned, setPinned, size, setWidth }: HeadingProps): JSX.Element {
-  const onResize = useCallback(throttle((e, { size }) => setWidth(size.width), 5), [])
+type DnDItem = { columnIndex: number }
+
+export function Heading({
+  column,
+  columnIndex,
+  pinned,
+  size,
+  onDrop,
+  onChangePinned,
+  onResize: $onResize
+}: HeadingProps): JSX.Element {
+  const onResize = useCallback(throttle((e, { size }) => $onResize && $onResize(size), 5), [])
   const [drag, dragRef, previewRef] = useDrag(() => ({
-    type: "column", item: { columnIndex, column },
+    type: "column", item: { columnIndex } as DnDItem,
     collect: (monitor) => ({
       isDragging: monitor.isDragging()
     })
   }))
   const [drop, dropRef] = useDrop(() => ({
     accept: "column",
+    drop: ({ columnIndex: ix }: DnDItem) => onDrop && onDrop(ix),
     collect: (monitor) => ({
       isOver: monitor.isOver({ shallow: true })
     })
@@ -49,7 +61,7 @@ export function Heading({ column, columnIndex, pinned, setPinned, size, setWidth
         <div className="controls">
           <button
             className={cx("pin-control", { disabled: !pinned })}
-            onClick={() => setPinned && setPinned(!pinned)}
+            onClick={() => onChangePinned && onChangePinned(!pinned)}
           >
             <Icon icon={faThumbtack} />
           </button>

@@ -82,7 +82,8 @@ export default function App(): JSX.Element {
     isPinned,
     addPin,
     removePin,
-    pinnedRange
+    pinnedRange,
+    insertBefore
   } = useColumnPosition((fn) => setTable(({ columns, rows }) => ({ columns: fn(columns), rows })))
   const cellRenderer = useMemo(() => tableRenderer(table, ({ cell, ...props }) => {
     switch (cell.kind) {
@@ -101,9 +102,10 @@ export default function App(): JSX.Element {
               column={column}
               columnIndex={index}
               pinned={isPinned(index)}
-              setPinned={(pinned) => pinned ? addPin(index) : removePin(index)}
               size={{ width: getWidth(index), height: 50 }}
-              setWidth={(width) => setWidth(index, width)}
+              onChangePinned={(pinned) => pinned ? addPin(index) : removePin(index)}
+              onResize={({ width }) => setWidth(index, width)}
+              onDrop={(ix) => insertBefore(ix, index)}
             />
           </div>
         )

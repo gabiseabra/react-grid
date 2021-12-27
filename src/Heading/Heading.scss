@@ -14,7 +14,7 @@
     text-overflow: ellipsis;
   }
   & > .controls {
-    flex: 0;
+    flex: 0 12px;
     .pin-control {
       background: none;
       border: none;
@@ -22,16 +22,17 @@
       &.disabled > * { color: grey }
     }
   }
+  & > .drop-target {
+    flex: 0 12px;
+    height: 100%;
+    &.is-over {
+      flex: 0 50%;
+      background: grey;
+    }
+  }
   & > .react-resizable-handle {
     flex: 0 5px;
     height: 100%;
     cursor: ew-resize;
-  }
-  & > .drop-target {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 50%;
   }
 }
