@@ -1,6 +1,6 @@
 import "./styles.scss";
 import pipe from 'lodash/fp/pipe'
-import { Ref, useMemo, useRef, useState } from "react";
+import { Ref, useMemo, useRef } from "react";
 import * as RV from 'react-virtualized'
 import * as T from "./lib/Table";
 import { tableRenderer } from "./lib/tableRenderer";
@@ -12,85 +12,88 @@ import { Heading } from "./Heading";
 import { useTableLayout } from "./lib/useTableLayout";
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { DndProvider } from 'react-dnd'
-import { useColumnPosition } from "./lib/useColumnPosition";
+import { useColumns } from "./lib/useColumns";
+import { useRows } from "./lib/useRows";
 
-const Columns = {
-  db_string0: { type: "string" },
-  db_string1: { type: "string" },
-  db_string2: { type: "string" },
-  db_string3: { type: "string" },
-  db_string4: { type: "string" },
-  db_string5: { type: "string" },
-  db_string6: { type: "string" },
-  db_string7: { type: "string" },
-  db_string8: { type: "string" },
-  db_string9: { type: "string" },
-  db_number0: { type: "number" },
-  db_number1: { type: "number" },
-  db_number2: { type: "number" },
-  db_number3: { type: "number" },
-  db_number4: { type: "number" },
-  db_number5: { type: "number" },
-  db_number6: { type: "number" },
-  db_number7: { type: "number" },
-  db_number8: { type: "number" },
-  db_number9: { type: "number" },
-  db_boolean0: { type: "boolean" },
-  db_boolean2: { type: "boolean" },
-  db_boolean3: { type: "boolean" },
-  db_boolean4: { type: "boolean" },
-  db_boolean5: { type: "boolean" },
-  db_boolean6: { type: "boolean" },
-  db_boolean7: { type: "boolean" },
-  db_boolean8: { type: "boolean" },
-  db_boolean9: { type: "boolean" },
-  db_date0: { type: "date" },
-  db_date1: { type: "date" },
-  db_date2: { type: "date" },
-  db_date3: { type: "date" },
-  db_date4: { type: "date" },
-  db_date5: { type: "date" },
-  db_date6: { type: "date" },
-  db_date7: { type: "date" },
-  db_date8: { type: "date" },
-  db_date9: { type: "date" },
-} as const
+const Table = new T.Table(new T.TProxy<CellTypes>(), {
+  db_string0: "string",
+  db_string1: "string",
+  db_string2: "string",
+  db_string3: "string",
+  db_string4: "string",
+  db_string5: "string",
+  db_string6: "string",
+  db_string7: "string",
+  db_string8: "string",
+  db_string9: "string",
+  db_number0: "number",
+  db_number1: "number",
+  db_number2: "number",
+  db_number3: "number",
+  db_number4: "number",
+  db_number5: "number",
+  db_number6: "number",
+  db_number7: "number",
+  db_number8: "number",
+  db_number9: "number",
+  db_boolean0: "boolean",
+  db_boolean2: "boolean",
+  db_boolean3: "boolean",
+  db_boolean4: "boolean",
+  db_boolean5: "boolean",
+  db_boolean6: "boolean",
+  db_boolean7: "boolean",
+  db_boolean8: "boolean",
+  db_boolean9: "boolean",
+  db_date0: "date",
+  db_date1: "date",
+  db_date2: "date",
+  db_date3: "date",
+  db_date4: "date",
+  db_date5: "date",
+  db_date6: "date",
+  db_date7: "date",
+  db_date8: "date",
+  db_date9: "date",
+})
 
-type ColT = T.ColT<typeof Columns, CellTypes>
-type RowT = T.RowT<typeof Columns, CellTypes>
+type Col = T.ColOf<typeof Table>
+type Row = T.RowOf<typeof Table>
 
-const mkRow = (i: number): RowT => columns.reduce((acc, { id, type }) => ({
+const mkRow = (i: number): Row => initialColumns.reduce((acc, { id, type }) => ({
   [id]: arbitraryValue(type, i),
   ...acc
-}), {}) as RowT
+}), {}) as Row
 
-const columns: ColT[] = Object.entries(Columns).map(([id, col]) => ({ id, ...col }) as ColT)
+const initialColumns: Col[] = (Object.keys(Table.Columns) as T.ColumnTagsOf<typeof Table>[]).map((id) => Table.getCol(id))
 
-const rows: RowT[] = Array(1000).fill(null).map((_, i) => mkRow(i))
+const initialRows: Row[] = Array(1000).fill(null).map((_, i) => mkRow(i))
 
 export default function App(): JSX.Element {
   const gridRef: Ref<RV.Grid> = useRef(null)
-  const [table, setTable] = useState({ columns, rows })
-  const { getWidth, setWidth, layoutProps } = useTableLayout({
-    gridRef,
-    table,
-    cellSize: { width: 130, height: 30 },
-    headingSize: { width: 50, height: 50 }
-  })
   const {
+    columns,
     pinCount,
     isPinned,
     addPin,
     removePin,
     pinnedRange,
     insertBefore
-  } = useColumnPosition((fn) => setTable(({ columns, rows }) => ({ columns: fn(columns), rows })))
-  const cellRenderer = useMemo(() => tableRenderer(table, ({ cell, ...props }) => {
+  } = useColumns(initialColumns)
+  const { rows } = useRows(initialRows)
+  const { getWidth, setWidth, layoutProps } = useTableLayout({
+    gridRef,
+    columns,
+    rows,
+    cellSize: { width: 130, height: 30 },
+    headingSize: { width: 50, height: 50 }
+  })
+  const cellRenderer = useMemo(() => tableRenderer(columns, rows, ({ cell, ...props }) => {
     switch (cell.kind) {
       case "cell":
         return (
           <div key={props.key} style={props.style}>
-            <CellValue readOnly cell={T.getCell(cell.column.value, cell.row.value)} />
+            <CellValue readOnly cell={Table.getCell(cell.column.value.id, cell.row.value)} />
           </div>
         )
       case "column":
@@ -112,7 +115,7 @@ export default function App(): JSX.Element {
       case "row": return <div key={props.key} style={props.style}>{cell.row.index}</div>
       default: return null
     }
-  }), [table])
+  }), [columns, rows, pinCount])
   const cellRangeRenderer = useMemo(() => renderRanges(
     pipe(
       pinnedRange,

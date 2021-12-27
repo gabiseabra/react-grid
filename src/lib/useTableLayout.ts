@@ -1,9 +1,9 @@
 import { RefObject, useCallback, useRef } from "react"
 import * as RV from 'react-virtualized'
-import { Table } from "./Table"
 
 type UseSizeOptions = {
-  table: Table<{ id: string }, any>
+  columns: { id: string }[],
+  rows: any[],
   gridRef: RefObject<RV.Grid>
   headingSize: { width: number, height: number }
   cellSize: { width: number, height: number }
@@ -22,19 +22,20 @@ type UseSize = {
 }
 
 export function useTableLayout({
-  table,
+  columns,
+  rows,
   gridRef,
   headingSize,
   cellSize
 }: UseSizeOptions): UseSize {
   const sizeRef: RefObject<{ [k in string]?: number }> = useRef({})
   const getWidth = (ix: number): number => ix === -1 ? headingSize.width : (
-    sizeRef.current && sizeRef.current[table.columns[ix].id] || cellSize.width
+    sizeRef.current && sizeRef.current[columns[ix].id] || cellSize.width
   )
   const getHeight = (ix: number): number => ix === -1 ? headingSize.height : cellSize.height
   const setWidth = (ix: number, width?: number) => {
     if (!sizeRef.current || !gridRef.current) return
-    const id = table.columns[ix].id
+    const id = columns[ix].id
     sizeRef.current[id] = width
     gridRef.current.recomputeGridSize({ columnIndex: ix + 1 })
   }
@@ -45,8 +46,8 @@ export function useTableLayout({
     getHeight,
     setWidth,
     layoutProps: {
-      rowCount: table.rows.length + 1,
-      columnCount: table.columns.length + 1,
+      rowCount: rows.length + 1,
+      columnCount: columns.length + 1,
       columnWidth,
       rowHeight
     }

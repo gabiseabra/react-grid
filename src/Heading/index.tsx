@@ -1,7 +1,6 @@
 import throttle from 'lodash/throttle'
 import "./Heading.scss"
 import cx from "classnames"
-import { ColT } from "../lib/Table"
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome'
 import { faThumbtack } from '@fortawesome/free-solid-svg-icons/faThumbtack'
 import { useCallback } from "react"
@@ -9,7 +8,7 @@ import { Resizable } from 'react-resizable'
 import { useDrag, useDrop } from 'react-dnd'
 
 type HeadingProps = {
-  column: ColT<any>
+  column: { id: string }
   columnIndex: number,
   pinned?: boolean,
   size: { width: number, height: number },

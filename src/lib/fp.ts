@@ -11,3 +11,18 @@ export const partition = <T extends unknown>(fn: (a: T) => boolean) => (as: T[])
     if (fn(a)) return [L, append(a)(R)]
     else return [append(a)(L), R]
   }, [[], []])
+
+export const insertBefore = (ix: number, target: number) => (as: any[]): any[] => {
+  const [a] = as.splice(ix, 1)
+  as.splice(target, 0, a)
+  return as
+}
+
+export const moveToStart = (ixs: number[]) => (as: any[]): any[] => {
+  const start = []
+  for (const ix of ixs) {
+    const [a] = as.splice(ix, 1)
+    start.push(a)
+  }
+  return start.concat(as)
+}
