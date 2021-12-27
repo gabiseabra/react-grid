@@ -11,6 +11,7 @@ type UseSizeOptions = {
 
 type UseSize = {
   getWidth: (ix: number) => number
+  getHeight: (ix: number) => number
   setWidth: (ix: number, size?: number) => void
   layoutProps: {
     columnCount: number,
@@ -27,19 +28,21 @@ export function useTableLayout({
   cellSize
 }: UseSizeOptions): UseSize {
   const sizeRef: RefObject<{ [k in string]?: number }> = useRef({})
-  const getWidth = useCallback((ix: number): number => (
+  const getWidth = (ix: number): number => ix === -1 ? headingSize.width : (
     sizeRef.current && sizeRef.current[table.columns[ix].id] || cellSize.width
-  ), [])
-  const setWidth = useCallback((ix: number, width?: number) => {
+  )
+  const getHeight = (ix: number): number => ix === -1 ? headingSize.height : cellSize.height
+  const setWidth = (ix: number, width?: number) => {
     if (!sizeRef.current || !gridRef.current) return
     const id = table.columns[ix].id
     sizeRef.current[id] = width
     gridRef.current.recomputeGridSize({ columnIndex: ix + 1 })
-  }, [])
-  const columnWidth = useCallback(({ index }) => index === 0 ? headingSize.width : getWidth(index - 1), [])
-  const rowHeight = useCallback(({ index }) => index === 0 ? headingSize.height : cellSize.height, [])
+  }
+  const columnWidth = useCallback(({ index }) => getWidth(index - 1), [])
+  const rowHeight = useCallback(({ index }) => getHeight(index - 1), [])
   return {
     getWidth,
+    getHeight,
     setWidth,
     layoutProps: {
       rowCount: table.rows.length + 1,
