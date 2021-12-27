@@ -1,4 +1,5 @@
-import { CellT, ColT, getCell, getValue, RowT } from "./Table"
+import { unionize, ofType } from 'unionize'
+import { Table, ColOf, RowOf, TProxy, ColumnTagsOf } from "./Table"
 
 type TypeMap = {
   string: string,
@@ -6,111 +7,112 @@ type TypeMap = {
   boolean: boolean
 }
 
-const Cols = {
-  a: { type: "string" },
-  b: { type: "number" },
-  c: { type: "boolean" },
-} as const
-
-const columns: ColT<typeof Cols, TypeMap>[] = [
-  { id: "a", type: "string" },
-  { id: "b", type: "number" },
-  { id: "c", type: "boolean" },
-]
-
-const rows: RowT<typeof Cols, TypeMap>[] = [
-  { a: "eyy", b: 123, c: true },
-  { a: "eyy", b: 123, c: true },
-]
+const MyTable = new Table(new TProxy<TypeMap>(), {
+  a: "string",
+  b: "number",
+  c: "boolean",
+})
 
 describe('Table', () => {
-  describe("ColT", () => {
+  describe("ColOf", () => {
     it("Type checks", () => {
-      const test: ColT<typeof Cols, TypeMap> = { id: "a", type: "string" }
+      const test: ColOf<typeof MyTable> = { id: "a", type: "string" }
     })
 
     it("Fails to type check — incorrect column type", () => {
-      // @ts-expect-error — Type '{ id: "a"; type: "number"; }' is not assignable to type '{ id: "c"; } & { readonly type: "boolean"; }'
-      const test: ColT<typeof Cols, TypeMap> = { id: "a", type: "number" }
+      // @ts-expect-error —  Type '{ id: "a"; type: "number"; }' is not assignable to type ...
+      const test: ColOf<typeof MyTable> = { id: "a", type: "number" }
     })
 
     it("Fails to type check — non existent column id", () => {
       // @ts-expect-error — Type '"d"' is not assignable to type '"a" | "b" | "c"'
-      const test: ColT<typeof Cols, TypeMap> = { id: "d", type: "number" }
+      const test: ColOf<typeof MyTable> = { id: "d", type: "number" }
     })
   })
 
-  describe("RowT", () => {
+  describe("RowOf", () => {
     it("Type checks", () => {
-      const test: RowT<typeof Cols, TypeMap> = { a: "eyy", b: 420, c: true }
+      const test: RowOf<typeof MyTable> = { a: "eyy", b: 420, c: true }
     })
 
     it("Fails to type check — incorrect column type", () => {
       // @ts-expect-error Type — 'number' is not assignable to type 'boolean'
-      const test: RowT<typeof Cols, TypeMap> = { a: "eyy", b: 420, c: 69 }
+      const test: RowOf<typeof MyTable> = { a: "eyy", b: 420, c: 69 }
     })
 
     it("Fails to type check — non existent column id", () => {
       // @ts-expect-error — Object literal may only specify known properties, and 'd' does not exist in type ...
-      const test: RowT<typeof Cols, TypeMap> = { a: "eyy", b: 420, c: true, d: 69 }
+      const test: RowOf<typeof MyTable> = { a: "eyy", b: 420, c: true, d: 69 }
     })
 
     it("Fails to type check — missing column id", () => {
       // @ts-expect-error — Property 'c' is missing in type ...
-      const test: RowT<typeof Cols, TypeMap> = { a: "eyy", b: 420 }
+      const test: RowOf<typeof MyTable> = { a: "eyy", b: 420 }
     })
   })
 
-  describe("getValue", () => {
+  describe("getCol", () => {
     it("Type checks", () => {
-      const a: string = getValue("a", rows[0])
-      expect(typeof a).toBe("string")
+      const a: { id: "a", type: "string" } = MyTable.getCol("a")
+      expect(a).toMatchObject({ id: "a", type: "string" })
     })
 
     it("Fails to type check — incorrect type assignment", () => {
-      // @ts-expect-error — Type 'number' is not assignable to type 'string'
-      const b: string = getValue("b", rows[0])
-      expect(typeof b).toBe("number")
+      // @ts-expect-error — Type '"string"' is not assignable to type '"number"'.
+      const a: { id: "a", type: "number" } = MyTable.getCol("a")
+      expect(a).toMatchObject({ id: "a", type: "string" })
     })
 
-    it("Fails to type check — non existent column id", () => {
-      // @ts-expect-error — Argument of type '"d"' is not assignable to parameter of type '"a" | "b" | "c"'
-      const d: string = getValue("d", rows[0])
-      expect(typeof d).toBe("undefined")
+    it("Fails to type check — invalid column id", () => {
+      // @ts-expect-error — Argument of type '"d"' is not assignable to parameter of type '"a" | "b" | "c"'.
+      const a: { id: "a", type: "string" } = MyTable.getCol("d")
+      expect(a).toMatchObject({ id: "d", type: undefined })
     })
   })
 
   describe("getCell", () => {
-    it("Type checks", () => {
-      const a: CellT<TypeMap> = getCell(columns[0], rows[0])
-      expect(a.type).toBe("string")
-      expect(typeof a.value).toBe("string")
+    const row: RowOf<typeof MyTable> = {
+      a: "eyy",
+      b: 420,
+      c: true
+    }
 
-      const b: { type: "number", value: number } = getCell({ id: "b", type: "number" }, rows[0])
-      expect(b.type).toBe("number")
-      expect(typeof b.value).toBe("number")
+    it("Type checks", () => {
+      const a: { type: "string", value: string } = MyTable.getCell("a", row)
+      expect(a).toMatchObject({ type: "string", value: "eyy" })
     })
 
     it("Fails to type check — incorrect type assignment", () => {
-      // @ts-expect-error — Type '{ type: "string"; value: string; } | { type: "number"; value: number; } | { type: "boolean"; value: boolean; }' is not assignable to type '{ type: "string"; value: string; }'
-      const a: { type: "string", value: string } = getCell(columns[0], rows[0])
-      expect(typeof a.value).toBe("string")
+      // @ts-expect-error — Type '"number"' is not assignable to type '"string"'
+      const b0: { type: "string", value: string } = MyTable.getCell("b", row)
+      expect(b0).toMatchObject({ type: "number", value: 420 })
 
-      // @ts-expect-error — Type '{ type: "number"; value: number; }' is not assignable to type '{ type: "string"; value: string; }'
-      const b: { type: "string", value: string } = getCell({ id: "b", type: "number" }, rows[0])
-      expect(typeof b.value).toBe("number")
-    })
-
-    it("Fails to type check — incorrect column type", () => {
-      // @ts-expect-error — Type '"string"' is not assignable to type '"boolean"'
-      const c = getCell({ id: "c", type: "string" }, rows[0])
-      expect(typeof c.value).toBe("boolean")
+      // @ts-expect-error — Type 'number' is not assignable to type 'string'
+      const b1: { type: "string", value: number } = MyTable.getCell("b", row)
+      expect(b1).toMatchObject({ type: "number", value: 420 })
     })
 
     it("Fails to type check — non existent column id", () => {
-      // @ts-expect-error — Type '"d"' is not assignable to type '"a" | "b" | "c"'
-      const d = getCell({ id: "d", type: "string" }, rows[0])
-      expect(typeof d.value).toBe("undefined")
+      // @ts-expect-error — Argument of type '"d"' is not assignable to parameter of type '"a" | "b" | "c"'
+      const d = MyTable.getCell("d", row)
+      expect(d).toMatchObject({ type: undefined, value: undefined })
+    })
+
+    it("Works with unionize", () => {
+      const Types = unionize({
+        string: ofType<string>(),
+        number: ofType<number>(),
+        boolean: ofType<boolean>()
+      }, {
+        tag: "type",
+        value: "value"
+      })
+
+      const a = MyTable.getCell("a", row)
+      const [b] = (["b"] as ColumnTagsOf<typeof MyTable>[]).map((k) => MyTable.getCell(k, row))
+
+      expect(Types.string(a.value)).toMatchObject(a)
+      expect(Types.is.number(b)).toBe(true)
     })
   })
 })

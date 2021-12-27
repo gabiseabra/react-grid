@@ -1,45 +1,55 @@
-// This module provides type checking and querying of a table structure <C> against
-// rows of data <R>.
-export type Table<C, R>
-  = { columns: C[], rows: R[] }
+type TMap = Record<string, any>
 
-// Row data
-export type RowT<C extends Columns<T>, T = any> = {
-  [id in keyof C]: T[C[id]["type"]]
+type CTMap<T extends TMap> = Record<string, keyof T>
+
+export class TProxy<T> {
+  public __Type: T
+  constructor() {
+    // @ts-expect-error This is a proxy type
+    this.__Type = undefined
+  }
 }
 
-// Table structure represented as a map of column names to a type in T, where T is
-// a proxy map of strings to js types. e.g.:
-// type Types = { "string": string, "number": number }
-// const columns: Columns<Types> = { a: { type: "string"}, b: { type: "number" } }
-export type Columns<T> = {
-  [k: string]: {
-    type: keyof T
-  } & Record<string, any>
+type TypeOf<P extends TProxy<any>> = P["__Type"]
+
+export class Table<T, C extends CTMap<T>> {
+  constructor(
+    public __TProxy: TProxy<T>,
+    public Columns: C
+  ) { }
+
+  getCol<K extends ColumnTagsOf<this>>(id: K): TaggedColOf<this>[K] {
+    return { id, type: this.Columns[id] }
+  }
+
+  getCell<K extends ColumnTagsOf<this>>(id: K, row: RowOf<this>): TaggedCellOf<this>[TypeTagAt<this, K>]
+  getCell(id: ColumnTagsOf<this>, row: RowOf<this>): CellOf<this> {
+    const value = row[id]
+    const type = this.Columns[id]
+    return { type, value }
+  }
 }
 
-type ColTMap<C extends Columns<T>, T = any> = { [id in keyof C]: { id: id } & C[id] }
-
-// Sum type of columns in C, used for querying rows
-export type ColT<C extends Columns<T>, T = any> = ColTMap<C, T>[keyof C]
-
-export function ColT<C extends Columns<T>, T = any>(columns: C, id: keyof C): ColT<C, T> {
-  return { id, ...columns[id] }
+export type RowOf<T extends Table<any, any>> = {
+  -readonly [k in ColumnTagsOf<T>]: TypeAt<T, k>
 }
 
-type CellTMap<T = any> = { [type in keyof T]: { type: type, value: T[type] } }
-
-// Sum type of types in T, witness that the column matches a type in a row, used
-// to narrow arbitrary db values.
-export type CellT<T = any> = CellTMap<T>[keyof T]
-
-export function getCell<K extends keyof C, C extends Columns<T>, T = any>(column: ColTMap<C, T>[K], row: RowT<C, T>): CellTMap<T>[C[K]["type"]];
-export function getCell<C extends Columns<T>, T = any>(column: ColT<C, T>, row: RowT<C, T>): CellT<T> {
-  return { type: column.type, value: getValue(column.id, row) }
+export type TaggedColOf<T extends Table<any, any>> = {
+  [k in ColumnTagsOf<T>]: { id: k, type: TypeTagAt<T, k> }
 }
 
-// Get value of column K in a row
-export function getValue<K extends keyof C, C extends Columns<T>, T = any>(id: K, row: RowT<C, T>): T[C[K]["type"]];
-export function getValue<C extends Columns<T>, T = any>(id: keyof C, row: RowT<C, T>): T[keyof T] {
-  return row[id]
+export type ColOf<T extends Table<any, any>> = TaggedColOf<T>[ColumnTagsOf<T>]
+
+export type TaggedCellOf<T extends Table<any, any>> = {
+  [k in TypeTagsOf<T>]: { type: k, value: TypeMapOf<T>[k] }
 }
+
+export type CellOf<T extends Table<any, any>> = TaggedCellOf<T>[TypeTagsOf<T>]
+
+export type TypeMapOf<T extends Table<any, any>> = TypeOf<T["__TProxy"]>
+
+export type TypeTagAt<T extends Table<any, any>, K extends keyof T["Columns"]> = T["Columns"][K]
+export type TypeAt<T extends Table<any, any>, K extends keyof T["Columns"]> = TypeMapOf<T>[TypeTagAt<T, K>]
+
+export type TypeTagsOf<T extends Table<any, any>> = keyof TypeOf<T["__TProxy"]>
+export type ColumnTagsOf<T extends Table<any, any>> = keyof T["Columns"]
