@@ -1,5 +1,5 @@
 import throttle from 'lodash/throttle'
-import { MouseEventHandler, MutableRefObject, RefObject, useEffect, useMemo, useRef, useState } from "react"
+import { MouseEventHandler, RefObject, useEffect, useMemo, useState } from "react"
 import * as RV from 'react-virtualized'
 import { Endo } from './fp'
 import { Cell, Range, intersects } from "./Range/BBox"
