@@ -1,5 +1,4 @@
 import throttle from 'lodash/throttle'
-import "./Heading.scss"
 import cx from "classnames"
 import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome'
 import { faThumbtack } from '@fortawesome/free-solid-svg-icons/faThumbtack'

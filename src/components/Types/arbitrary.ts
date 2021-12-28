@@ -1,8 +1,8 @@
 import * as Faker from "faker"
-import { CellTypes } from ".";
+import { TypeMap } from "./TypeMap";
 
-export function arbitraryValue<T extends keyof CellTypes>(type: T, seed?: number): CellTypes[T];
-export function arbitraryValue(type: keyof CellTypes, seed?: number): CellTypes[typeof type] {
+export function arbitraryValue<T extends keyof TypeMap>(type: T, seed?: number): TypeMap[T];
+export function arbitraryValue(type: keyof TypeMap, seed?: number): TypeMap[typeof type] {
   if (seed) Faker.seed(seed)
   switch (type) {
     case "string": return Faker.lorem.word();

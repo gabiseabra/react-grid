@@ -1,16 +1,17 @@
-type DateCellProps = {
+type DateValueProps = {
   value: Date | null;
-  readOnly?: boolean;
   onChange?: (value: Date | null) => any
+  readOnly?: boolean;
+  className?: string;
 };
 
-export function DateCell({ value, readOnly, onChange }: DateCellProps): JSX.Element {
+export function DateValue({ value, onChange, ...props }: DateValueProps): JSX.Element {
   return (
     <input
       type="date"
       value={value?.toISOString().split('T')[0] || ""}
-      readOnly={readOnly}
       onChange={!onChange ? undefined : (e) => onChange(e.target.valueAsDate)}
+      {...props}
     />
   );
 }

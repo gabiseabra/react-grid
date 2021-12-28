@@ -1,13 +1,13 @@
 import "./styles.scss";
 import cx from 'classnames'
 import pipe from 'lodash/fp/pipe'
-import { RefObject, useEffect, useMemo, useRef } from "react";
+import { RefObject, useMemo, useRef } from "react";
 import * as RV from 'react-virtualized'
 import * as T from "./lib/Table";
-import { CellValue, CellTypes } from "./Types";
-import { arbitraryValue } from "./Types/arbitrary";
+import { Value, TypeMap } from "./components/Types";
+import { arbitraryValue } from "./components/Types/arbitrary";
 import { stickyRangeRenderer } from "./lib/Range/stickyRangeRenderer";
-import { Heading } from "./Heading";
+import { Heading } from "./components/HeadingCell/HeadingCell";
 import { useSize } from "./lib/useSize";
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { DndProvider } from 'react-dnd'
@@ -17,10 +17,10 @@ import { Cell, rowRange } from "./lib/Range/BBox";
 import { mkCellRenderer } from "./lib/Range/cellRenderer";
 import { mkCellRangeRenderer } from "./lib/Range/cellRangeRenderer";
 import { getAgg, isGroup } from "./lib/Group";
-import { aggregator } from "./Types/aggregator";
+import { aggregator } from "./components/Types/aggregator";
 import { useSelection } from "./lib/useSelection";
 
-const Table = new T.Table(new T.TProxy<CellTypes>(), {
+const Table = new T.Table(new T.TProxy<TypeMap>(), {
   db_string0: "string",
   db_string1: "string",
   db_string2: "string",
@@ -127,7 +127,7 @@ export default function App(): JSX.Element {
       if (isGroup(row)) {
         return (
           <div key={key} style={style} onClick={() => setGroupExpanded(row.key, !row.expanded)}>
-            <CellValue readOnly cell={getAgg(column, row.entries, aggregator)} />
+            <Value readOnly cell={getAgg(column, row.entries, aggregator)} />
           </div>
         )
       } else {
@@ -144,7 +144,7 @@ export default function App(): JSX.Element {
             })}
             {...cellEvents(coord)}
           >
-            <CellValue readOnly cell={cell} />
+            <Value readOnly cell={cell} />
           </div>
         )
       }

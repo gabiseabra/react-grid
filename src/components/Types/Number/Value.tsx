@@ -1,7 +1,8 @@
-type NumberCellProps = {
+type NumberValueProps = {
   value: number | null;
-  readOnly?: boolean;
   onChange?: (value: number | null) => any
+  readOnly?: boolean;
+  className?: string;
 };
 
 const parseNumber = (value: string): number | null => {
@@ -9,13 +10,13 @@ const parseNumber = (value: string): number | null => {
   return isNaN(num) ? null : num
 }
 
-export function NumberCell({ value, readOnly, onChange }: NumberCellProps): JSX.Element {
+export function NumberValue({ value, onChange, ...props }: NumberValueProps): JSX.Element {
   return (
     <input
       type="number"
       value={String(value || 0)}
-      readOnly={readOnly}
       onChange={!onChange ? undefined : (e) => onChange(parseNumber(e.target.value))}
+      {...props}
     />
   );
 }

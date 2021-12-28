@@ -1,18 +1,19 @@
-type StringCellProps = {
+type StringValueProps = {
   value: string | null;
-  readOnly?: boolean;
   onChange?: (value: string | null) => any
+  readOnly?: boolean;
+  className?: string;
 };
 
 const parseString = (value: string): string | null => value === "" ? null : value
 
-export function StringCell({ value, readOnly, onChange }: StringCellProps): JSX.Element {
+export function StringValue({ value, onChange, ...props }: StringValueProps): JSX.Element {
   return (
     <input
       type="text"
       value={value || ""}
-      readOnly={readOnly}
       onChange={!onChange ? undefined : (e) => onChange(parseString(e.target.value))}
+      {...props}
     />
   );
 }

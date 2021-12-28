@@ -1,7 +1,7 @@
-import { CellTypes } from ".";
-import { Agg } from "../lib/Group";
+import { TypeMap } from "./TypeMap";
+import { Agg } from "../../lib/Group";
 
-export const aggregator: Agg<CellTypes> = (agg) => {
+export const aggregator: Agg<TypeMap> = (agg) => {
   switch (agg.type) {
     case "string": {
       const distinctCount = new Set(agg.value).size
