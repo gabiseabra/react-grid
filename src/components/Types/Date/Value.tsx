@@ -9,9 +9,9 @@ export function DateValue({ value, onChange, ...props }: DateValueProps): JSX.El
   return (
     <input
       type="date"
-      value={value?.toISOString().split('T')[0] || ""}
+      value={value?.toISOString().split("T")[0] || ""}
       onChange={!onChange ? undefined : (e) => onChange(e.target.valueAsDate)}
       {...props}
     />
-  );
+  )
 }

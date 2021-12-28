@@ -22,18 +22,17 @@ export const Range = ({
   columnStartIndex,
   columnStopIndex,
   rowStartIndex,
-  rowStopIndex
+  rowStopIndex,
 }: RangeProps): Range => [
     [columnStartIndex, rowStartIndex],
-    [columnStopIndex, rowStopIndex]
+    [columnStopIndex, rowStopIndex],
   ]
 
 export const empty: Range = [[NaN, NaN], [NaN, NaN]]
+
 export const all: Range = [[-Infinity, -Infinity], [Infinity, Infinity]]
 
 export const emptyRange: Endo<Range> = () => empty
-
-export const fullRange: Endo<Range> = () => all
 
 export const cellRange = ([x, y]: Cell): Endo<Range> => () => [[x, y], [x, y]]
 

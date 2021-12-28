@@ -1,6 +1,7 @@
 import { useState } from "react"
+
 import { Endo, insertBefore as _insertBefore, moveToStart } from "./fp"
-import { columnRange, emptyRange, Range } from "./Range/BBox"
+import { columnRange, emptyRange, Range } from "./Range"
 
 export type Pins = Set<number>
 
@@ -55,6 +56,6 @@ export function useColumns<T>(initialColumns?: T[]): UseColumns<T> {
     setColumns(columns) {
       resetPins()
       setColumns(columns)
-    }
+    },
   }
 }

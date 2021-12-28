@@ -1,5 +1,5 @@
 import { RefObject, useRef } from "react"
-import * as RV from 'react-virtualized'
+import * as RV from "react-virtualized"
 
 type UseSizeOptions = {
   gridRef: RefObject<RV.Grid>,
@@ -17,7 +17,7 @@ export function useSize({
   gridRef,
   items,
   defaultSize,
-  axis
+  axis,
 }: UseSizeOptions): UseSize {
   const sizeRef: RefObject<{ [k in string]?: number }> = useRef({})
   const getSize = (ix: number): number => (

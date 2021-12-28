@@ -18,5 +18,5 @@ export function NumberValue({ value, onChange, ...props }: NumberValueProps): JS
       onChange={!onChange ? undefined : (e) => onChange(parseNumber(e.target.value))}
       {...props}
     />
-  );
+  )
 }

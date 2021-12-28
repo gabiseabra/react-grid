@@ -1,24 +1,29 @@
-import "./styles.scss";
-import cx from 'classnames'
-import pipe from 'lodash/fp/pipe'
-import { RefObject, useMemo, useRef } from "react";
-import * as RV from 'react-virtualized'
-import * as T from "./lib/Table";
-import { Value, TypeMap } from "./components/Types";
-import { arbitraryValue } from "./components/Types/arbitrary";
-import { stickyRangeRenderer } from "./lib/Range/stickyRangeRenderer";
-import { Heading } from "./components/HeadingCell/HeadingCell";
-import { useSize } from "./lib/useSize";
-import { HTML5Backend } from 'react-dnd-html5-backend'
-import { DndProvider } from 'react-dnd'
-import { useColumns } from "./lib/useColumns";
-import { useRows } from "./lib/useRows";
-import { Cell, rowRange } from "./lib/Range/BBox";
-import { mkCellRenderer } from "./lib/Range/cellRenderer";
-import { mkCellRangeRenderer } from "./lib/Range/cellRangeRenderer";
-import { getAgg, isGroup } from "./lib/Group";
-import { aggregator } from "./components/Types/aggregator";
-import { useSelection } from "./lib/useSelection";
+import "./styles.scss"
+
+import cx from "classnames"
+import pipe from "lodash/fp/pipe"
+import { RefObject, useMemo, useRef } from "react"
+import { DndProvider } from "react-dnd"
+import { HTML5Backend } from "react-dnd-html5-backend"
+import * as RV from "react-virtualized"
+
+import { Heading } from "./components/HeadingCell/HeadingCell"
+import { TypeMap, Value } from "./components/Types"
+import { aggregator } from "./components/Types/aggregator"
+import { arbitraryValue } from "./components/Types/arbitrary"
+import { getAgg, isGroup } from "./lib/Group"
+import {
+  Cell,
+  mkCellRangeRenderer,
+  mkCellRenderer,
+  rowRange,
+  stickyRangeRenderer,
+} from "./lib/Range"
+import * as T from "./lib/Table"
+import { useColumns } from "./lib/useColumns"
+import { useRows } from "./lib/useRows"
+import { useSelection } from "./lib/useSelection"
+import { useSize } from "./lib/useSize"
 
 const Table = new T.Table(new T.TProxy<TypeMap>(), {
   db_string0: "string",
@@ -67,7 +72,7 @@ type Row = T.RowOf<typeof Table>
 
 const mkRow = (i: number): Row => initialColumns.reduce((acc, { id, type }) => ({
   [id]: arbitraryValue(type, i),
-  ...acc
+  ...acc,
 }), {}) as Row
 
 const initialColumns: Col[] = (Object.keys(Table.Columns) as T.ColumnTagsOf<typeof Table>[]).map((id) => Table.getCol(id))
@@ -85,23 +90,23 @@ export default function App(): JSX.Element {
     addPin,
     removePin,
     pinnedRange,
-    insertBefore
+    insertBefore,
   } = useColumns(initialColumns)
   const {
     rows,
     setGroupBy,
-    setGroupExpanded
+    setGroupExpanded,
   } = useRows(initialRows)
-  // useEffect(() => setGroupBy(["db_boolean0"]), [])
+  //useEffect(() => setGroupBy(["db_boolean0"]), [])
   const {
     selection,
     isSelecting,
     isSelected,
     isFocused,
-    cellEvents
+    cellEvents,
   } = useSelection({
     gridRef,
-    selectableRange: [[0, 1], [columns.length, rows.length + 1]]
+    selectableRange: [[0, 1], [columns.length, rows.length + 1]],
   })
   const columnWidth = useSize({ gridRef, axis: "x", items: columns, defaultSize: 130 })
   const cellRenderer = useMemo(() => mkCellRenderer(
@@ -140,7 +145,7 @@ export default function App(): JSX.Element {
             className={cx("value-cell", {
               selected: isSelected(coord),
               selecting: isSelecting,
-              focused: isFocused(coord)
+              focused: isFocused(coord),
             })}
             {...cellEvents(coord)}
           >
@@ -180,5 +185,5 @@ export default function App(): JSX.Element {
         )}
       </RV.AutoSizer>
     </DndProvider>
-  );
+  )
 }

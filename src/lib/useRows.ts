@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+
 import { Group, groupBy as _groupBy } from "./Group"
 
 export type RowGroup<R> = Group<R> & { expanded?: boolean }
@@ -37,6 +38,6 @@ export function useRows<R>(initialRows?: R[]): UseRows<R> {
         return group
       }))
     },
-    setRows
+    setRows,
   }
 }

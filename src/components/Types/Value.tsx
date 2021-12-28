@@ -1,4 +1,5 @@
 import cx from "classnames"
+
 import { BoolValue } from "./Boolean/Value"
 import { DateValue } from "./Date/Value"
 import { NumberValue } from "./Number/Value"
@@ -21,12 +22,12 @@ export function Value({ cell, ...props }: ValueProps): JSX.Element {
   props.className = cx("Types-Value", props.className)
   switch (cell.type) {
     case "boolean":
-      return <BoolValue value={cell.value} onChange={cell.onChange} {...props} />;
+      return <BoolValue value={cell.value} onChange={cell.onChange} {...props} />
     case "string":
-      return <StringValue value={cell.value} onChange={cell.onChange} {...props} />;
+      return <StringValue value={cell.value} onChange={cell.onChange} {...props} />
     case "number":
-      return <NumberValue value={cell.value} onChange={cell.onChange} {...props} />;
+      return <NumberValue value={cell.value} onChange={cell.onChange} {...props} />
     case "date":
-      return <DateValue value={cell.value} onChange={cell.onChange} {...props} />;
+      return <DateValue value={cell.value} onChange={cell.onChange} {...props} />
   }
 }

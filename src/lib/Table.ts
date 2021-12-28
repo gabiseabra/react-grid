@@ -1,7 +1,7 @@
 export class TProxy<T> {
   public __Type: T
   constructor() {
-    // @ts-expect-error This is a proxy type
+    //@ts-expect-error This is a proxy type
     this.__Type = undefined
   }
 }

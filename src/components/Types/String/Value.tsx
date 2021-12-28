@@ -15,5 +15,5 @@ export function StringValue({ value, onChange, ...props }: StringValueProps): JS
       onChange={!onChange ? undefined : (e) => onChange(parseString(e.target.value))}
       {...props}
     />
-  );
+  )
 }

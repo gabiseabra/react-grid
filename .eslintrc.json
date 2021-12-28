@@ -6,6 +6,8 @@
   ],
   "parser": "@typescript-eslint/parser",
   "plugins": [
+    "prettier",
+    "simple-import-sort",
     "@typescript-eslint"
   ],
   "overrides": [
@@ -34,6 +36,27 @@
     "react/prop-types": "off",
     "react/display-name": "off",
     "@typescript-eslint/ban-ts-comment": "off",
-    "@typescript-eslint/no-explicit-any": "off"
+    "@typescript-eslint/no-explicit-any": "off",
+    "simple-import-sort/imports": "error",
+    "simple-import-sort/exports": "error",
+    "quotes": [
+      "error",
+      "double",
+      {
+        "avoidEscape": true
+      }
+    ],
+    "semi": [
+      "error",
+      "never"
+    ],
+    "spaced-comment": [
+      "error",
+      "never"
+    ],
+    "comma-dangle": [
+      "error",
+      "always-multiline"
+    ]
   }
 }

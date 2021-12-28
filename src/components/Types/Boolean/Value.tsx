@@ -13,5 +13,5 @@ export function BoolValue({ value, onChange, ...props }: BoolValueProps): JSX.El
       onChange={!onChange ? undefined : (e) => onChange(e.target.checked)}
       {...props}
     />
-  );
+  )
 }

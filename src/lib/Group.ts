@@ -30,7 +30,7 @@ export function Group<T>(group: TUnion<T>[], entries: T[]): Group<T> {
     [IS_GROUP]: true,
     key: `group-${UID++}`,
     group,
-    entries
+    entries,
   }
 }
 

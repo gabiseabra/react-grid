@@ -1,10 +1,10 @@
-import throttle from 'lodash/throttle'
+import { faThumbtack } from "@fortawesome/free-solid-svg-icons/faThumbtack"
+import { FontAwesomeIcon as Icon } from "@fortawesome/react-fontawesome"
 import cx from "classnames"
-import { FontAwesomeIcon as Icon } from '@fortawesome/react-fontawesome'
-import { faThumbtack } from '@fortawesome/free-solid-svg-icons/faThumbtack'
+import throttle from "lodash/throttle"
 import { useCallback } from "react"
-import { Resizable } from 'react-resizable'
-import { useDrag, useDrop } from 'react-dnd'
+import { useDrag, useDrop } from "react-dnd"
+import { Resizable } from "react-resizable"
 
 type HeadingProps = {
   column: { id: string }
@@ -25,21 +25,21 @@ export function Heading({
   size,
   onDrop,
   onChangePinned,
-  onResize: $onResize
+  onResize: $onResize,
 }: HeadingProps): JSX.Element {
   const onResize = useCallback(throttle((e, { size }) => $onResize && $onResize(size), 5), [])
   const [drag, dragRef, previewRef] = useDrag(() => ({
     type: "column", item: { columnIndex } as DnDItem,
     collect: (monitor) => ({
-      isDragging: monitor.isDragging()
-    })
+      isDragging: monitor.isDragging(),
+    }),
   }))
   const [drop, dropRef] = useDrop(() => ({
     accept: "column",
     drop: ({ columnIndex: ix }: DnDItem) => onDrop && onDrop(ix),
     collect: (monitor) => ({
-      isOver: monitor.isOver({ shallow: true })
-    })
+      isOver: monitor.isOver({ shallow: true }),
+    }),
   }))
   if (drag.isDragging) {
     return <div ref={previewRef} className="column-heading" />

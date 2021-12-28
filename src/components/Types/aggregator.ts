@@ -1,5 +1,5 @@
-import { TypeMap } from "./TypeMap";
-import { Agg } from "../../lib/Group";
+import { Agg } from "../../lib/Group"
+import { TypeMap } from "./TypeMap"
 
 export const aggregator: Agg<TypeMap> = (agg) => {
   switch (agg.type) {
