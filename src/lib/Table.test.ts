@@ -97,22 +97,5 @@ describe('Table', () => {
       const d = MyTable.getCell("d", row)
       expect(d).toMatchObject({ type: undefined, value: undefined })
     })
-
-    it("Works with unionize", () => {
-      const Types = unionize({
-        string: ofType<string>(),
-        number: ofType<number>(),
-        boolean: ofType<boolean>()
-      }, {
-        tag: "type",
-        value: "value"
-      })
-
-      const a = MyTable.getCell("a", row)
-      const [b] = (["b"] as ColumnTagsOf<typeof MyTable>[]).map((k) => MyTable.getCell(k, row))
-
-      expect(Types.string(a.value)).toMatchObject(a)
-      expect(Types.is.number(b)).toBe(true)
-    })
   })
 })
