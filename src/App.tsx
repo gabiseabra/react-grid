@@ -157,7 +157,6 @@ export default function App(): JSX.Element {
       key: "pinned-heading",
       top: true,
       left: true,
-      style: { zIndex: 2 }
     })],
     [headingRange, stickyRangeRenderer({ key: "heading", top: true })],
     [pinnedRange, stickyRangeRenderer({ key: "pinned", left: true })],
