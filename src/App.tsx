@@ -1,6 +1,6 @@
 import "./styles.scss";
 import pipe from 'lodash/fp/pipe'
-import { Ref, useMemo, useRef } from "react";
+import { Ref, useEffect, useMemo, useRef } from "react";
 import * as RV from 'react-virtualized'
 import * as T from "./lib/Table";
 import { CellValue, CellTypes } from "./Types";
@@ -15,6 +15,8 @@ import { useRows } from "./lib/useRows";
 import { rowRange } from "./lib/Range/BBox";
 import { mkCellRenderer } from "./lib/Range/cellRenderer";
 import { mkCellRangeRenderer } from "./lib/Range/cellRangeRenderer";
+import { getAgg, isGroup } from "./lib/Group";
+import { aggregator } from "./Types/aggregator";
 
 const Table = new T.Table(new T.TProxy<CellTypes>(), {
   db_string0: "string",
@@ -83,7 +85,12 @@ export default function App(): JSX.Element {
     pinnedRange,
     insertBefore
   } = useColumns(initialColumns)
-  const { rows } = useRows(initialRows)
+  const {
+    rows,
+    setGroupBy,
+    setGroupExpanded
+  } = useRows(initialRows)
+  // useEffect(() => setGroupBy(["db_boolean0"]), [])
   const columnWidth = useSize({ gridRef, axis: "x", items: columns, defaultSize: 130 })
   const cellRenderer = useMemo(() => mkCellRenderer(
     [headingRange, ({ columnIndex: index, style, key }) => {
@@ -104,13 +111,21 @@ export default function App(): JSX.Element {
     }],
     [x => x, ({ columnIndex, rowIndex, style, key }) => {
       const column = columns[columnIndex]
-      const row = rows[rowIndex + 1]
-      const cell = Table.getCell(column.id, row)
-      return (
-        <div key={key} style={style}>
-          <CellValue readOnly cell={cell} />
-        </div>
-      )
+      const row = rows[rowIndex - 1]
+      if (isGroup(row)) {
+        return (
+          <div key={key} style={style} onClick={() => setGroupExpanded(row.key, !row.expanded)}>
+            <CellValue readOnly cell={getAgg(column, row.entries, aggregator)} />
+          </div>
+        )
+      } else {
+        const cell = Table.getCell(column.id, row)
+        return (
+          <div key={key} style={style}>
+            <CellValue readOnly cell={cell} />
+          </div>
+        )
+      }
     }]
   ), [columns, rows, pinCount])
   const cellRangeRenderer = useMemo(() => mkCellRangeRenderer(
