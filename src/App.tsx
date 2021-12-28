@@ -1,7 +1,7 @@
 import "./styles.scss";
 import cx from 'classnames'
 import pipe from 'lodash/fp/pipe'
-import { RefObject, useMemo, useRef } from "react";
+import { RefObject, useEffect, useMemo, useRef } from "react";
 import * as RV from 'react-virtualized'
 import * as T from "./lib/Table";
 import { CellValue, CellTypes } from "./Types";
@@ -134,7 +134,6 @@ export default function App(): JSX.Element {
       } else {
         const cell = Table.getCell(column.id, row)
         const coord = Cell({ columnIndex, rowIndex })
-        if (columnIndex === 0 && rowIndex === 1) console.log("00", isSelected(coord))
         return (
           <div
             key={key}
