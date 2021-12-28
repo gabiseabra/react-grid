@@ -1,62 +1,17 @@
 import * as RV from 'react-virtualized'
 import React, { ReactNode } from "react";
-import { Endo } from './fp'
+import { Endo } from '../fp'
+import { isEmpty, Range } from './BBox';
 
-export type Coord = [number, number]
-export type BBox = [Coord, Coord]
+export type RangeRenderer = (nodes: ReactNode[], ctx: { bbox: Range } & RV.GridCellRangeProps) => ReactNode[]
 
-export const BBox = ({
-  columnStartIndex,
-  columnStopIndex,
-  rowStartIndex,
-  rowStopIndex
-}: RV.GridCellRangeProps): BBox => [
-    [columnStartIndex, rowStartIndex],
-    [columnStopIndex, rowStopIndex]
-  ]
-
-type GridFn<T> = (x: T, props: { bbox: BBox } & RV.GridCellRangeProps) => T
-
-export type Range = {
-  bbox?: BBox,
-  getNodes: GridFn<ReactNode[]>
-}
-
-export const Range = (props: RV.GridCellRangeProps): Range => ({ bbox: BBox(props), getNodes: (x) => x })
-
-export const emptyRange: Endo<Range> = ({ getNodes }) => ({ bbox: undefined, getNodes })
-
-export const mapBBox = (fn: Endo<BBox>): Endo<Range> => ({ bbox, getNodes }) => ({
-  bbox: bbox ? fn(bbox) : undefined,
-  getNodes
-})
-
-export const wrapNodes = (fn: GridFn<ReactNode[]>): Endo<Range> => ({ bbox, getNodes }) => ({
-  bbox,
-  getNodes: (nodes, ctx) => fn(getNodes(nodes, ctx), ctx)
-})
-
-export const rowIndexRange = (minY: number, maxY = minY): Endo<Range> => mapBBox(([[minX, _minY], [maxX, _maxY]]) => [
-  [minX, minY],
-  [maxX, maxY],
-])
-
-export const columnIndexRange = (minX: number, maxX = minX): Endo<Range> => mapBBox(([[_minX, minY], [_maxX, maxY]]) => [
-  [minX, minY],
-  [maxX, maxY],
-])
-
-export const shiftX = (x: number): Endo<Range> => mapBBox(([[minX, minY], [maxX, maxY]]) => [[minX + x, minY], [maxX + x, maxY]])
-
-export const shiftY = (y: number): Endo<Range> => mapBBox(([[minX, minY], [maxX, maxY]]) => [[minX, minY + y], [maxX, maxY + y]])
-
-export const renderRanges = (...fns: Endo<Range>[]): RV.GridCellRangeRenderer => (props) => {
+export const mkCellRangeRenderer = (...fns: [Endo<Range>, RangeRenderer][]): RV.GridCellRangeRenderer => (props) => {
   const initialRange = Range(props)
-  return multiRangeRenderer(fns.map((fn) => fn(initialRange)))(props)
+  return multiRangeRenderer(fns.map(([fn, g]) => [fn(initialRange), g]))(props)
 }
 
 // Adapted from https://github.com/bvaughn/react-virtualized/blob/abe0530a512639c042e74009fbf647abdb52d661/source/Grid/defaultCellRangeRenderer.js#L11
-export const multiRangeRenderer = (ranges: Range[]): RV.GridCellRangeRenderer => (props) => {
+export const multiRangeRenderer = (ranges: [Range, RangeRenderer][]): RV.GridCellRangeRenderer => (props) => {
   const {
     parent,
     cellCache,
@@ -74,10 +29,10 @@ export const multiRangeRenderer = (ranges: Range[]): RV.GridCellRangeRenderer =>
   const nodes: React.ReactNode[] = [];
 
   for (let i = 0; i < ranges.length; ++i) {
-    const range = ranges[i]
-    if (!range.bbox) continue;
-    const [[columnStartIndex, rowStartIndex], [columnStopIndex, rowStopIndex]] = range.bbox
-    let cells: React.ReactNode[] = [];
+    const [bbox, getNodes] = ranges[i]
+    if (isEmpty(bbox)) continue;
+    const [[columnStartIndex, rowStartIndex], [columnStopIndex, rowStopIndex]] = bbox
+    const cells: React.ReactNode[] = [];
     for (let rowIndex = rowStartIndex; rowIndex <= rowStopIndex; rowIndex++) {
       const rowDatum = rowSizeAndPositionManager.getSizeAndPositionOfCell(rowIndex);
       for (let columnIndex = columnStartIndex; columnIndex <= columnStopIndex; columnIndex++) {
@@ -140,9 +95,7 @@ export const multiRangeRenderer = (ranges: Range[]): RV.GridCellRangeRenderer =>
     }
     if (!cells.length) continue;
 
-    if (range.getNodes) cells = range.getNodes(cells, { bbox: range.bbox, ...props })
-
-    nodes.push(...cells)
+    nodes.push(...getNodes(cells, { bbox, ...props }))
   }
 
   return nodes;

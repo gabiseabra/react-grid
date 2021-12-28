@@ -3,17 +3,18 @@ import pipe from 'lodash/fp/pipe'
 import { Ref, useMemo, useRef } from "react";
 import * as RV from 'react-virtualized'
 import * as T from "./lib/Table";
-import { tableRenderer } from "./lib/tableRenderer";
-import { renderRanges, rowIndexRange } from "./lib/multiRangeRenderer";
 import { CellValue, CellTypes } from "./Types";
 import { arbitraryValue } from "./Types/arbitrary";
-import { stickyRange } from "./lib/stickyRange";
+import { stickyRangeRenderer } from "./lib/Range/stickyRangeRenderer";
 import { Heading } from "./Heading";
-import { useTableLayout } from "./lib/useTableLayout";
+import { useSize } from "./lib/useSize";
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { DndProvider } from 'react-dnd'
 import { useColumns } from "./lib/useColumns";
 import { useRows } from "./lib/useRows";
+import { rowRange } from "./lib/Range/BBox";
+import { mkCellRenderer } from "./lib/Range/cellRenderer";
+import { mkCellRangeRenderer } from "./lib/Range/cellRangeRenderer";
 
 const Table = new T.Table(new T.TProxy<CellTypes>(), {
   db_string0: "string",
@@ -69,6 +70,8 @@ const initialColumns: Col[] = (Object.keys(Table.Columns) as T.ColumnTagsOf<type
 
 const initialRows: Row[] = Array(1000).fill(null).map((_, i) => mkRow(i))
 
+const headingRange = rowRange(0)
+
 export default function App(): JSX.Element {
   const gridRef: Ref<RV.Grid> = useRef(null)
   const {
@@ -81,56 +84,45 @@ export default function App(): JSX.Element {
     insertBefore
   } = useColumns(initialColumns)
   const { rows } = useRows(initialRows)
-  const { getWidth, setWidth, layoutProps } = useTableLayout({
-    gridRef,
-    columns,
-    rows,
-    cellSize: { width: 130, height: 30 },
-    headingSize: { width: 50, height: 50 }
-  })
-  const cellRenderer = useMemo(() => tableRenderer(columns, rows, ({ cell, ...props }) => {
-    switch (cell.kind) {
-      case "cell":
-        return (
-          <div key={props.key} style={props.style}>
-            <CellValue readOnly cell={Table.getCell(cell.column.value.id, cell.row.value)} />
-          </div>
-        )
-      case "column":
-        const index = cell.column.index
-        const column = cell.column.value
-        return (
-          <div key={props.key} style={props.style}>
-            <Heading
-              column={column}
-              columnIndex={index}
-              pinned={isPinned(index)}
-              size={{ width: getWidth(index), height: 50 }}
-              onChangePinned={(pinned) => pinned ? addPin(index) : removePin(index)}
-              onResize={({ width }) => setWidth(index, width)}
-              onDrop={(ix) => insertBefore(ix, index)}
-            />
-          </div>
-        )
-      case "row": return <div key={props.key} style={props.style}>{cell.row.index}</div>
-      default: return null
-    }
-  }), [columns, rows, pinCount])
-  const cellRangeRenderer = useMemo(() => renderRanges(
-    pipe(
-      pinnedRange,
-      rowIndexRange(0),
-      stickyRange({ key: "pinned-heading", top: true, left: true, style: { zIndex: 2 } })
-    ),
-    pipe(
-      rowIndexRange(0),
-      stickyRange({ key: "heading", top: true })
-    ),
-    pipe(
-      pinnedRange,
-      stickyRange({ key: "pinned", left: true })
-    ),
-    x => x
+  const columnWidth = useSize({ gridRef, axis: "x", items: columns, defaultSize: 130 })
+  const cellRenderer = useMemo(() => mkCellRenderer(
+    [headingRange, ({ columnIndex: index, style, key }) => {
+      const column = columns[index]
+      return (
+        <div key={key} style={style}>
+          <Heading
+            column={column}
+            columnIndex={index}
+            pinned={isPinned(index)}
+            size={{ width: columnWidth.get(index), height: 50 }}
+            onChangePinned={(pinned) => pinned ? addPin(index) : removePin(index)}
+            onResize={({ width }) => columnWidth.set(index, width)}
+            onDrop={(ix) => insertBefore(ix, index)}
+          />
+        </div>
+      )
+    }],
+    [x => x, ({ columnIndex, rowIndex, style, key }) => {
+      const column = columns[columnIndex]
+      const row = rows[rowIndex + 1]
+      const cell = Table.getCell(column.id, row)
+      return (
+        <div key={key} style={style}>
+          <CellValue readOnly cell={cell} />
+        </div>
+      )
+    }]
+  ), [columns, rows, pinCount])
+  const cellRangeRenderer = useMemo(() => mkCellRangeRenderer(
+    [pipe(pinnedRange, headingRange), stickyRangeRenderer({
+      key: "pinned-heading",
+      top: true,
+      left: true,
+      style: { zIndex: 2 }
+    })],
+    [headingRange, stickyRangeRenderer({ key: "heading", top: true })],
+    [pinnedRange, stickyRangeRenderer({ key: "pinned", left: true })],
+    [x => x, x => x]
   ), [pinCount])
   return (
     <DndProvider backend={HTML5Backend}>
@@ -144,7 +136,10 @@ export default function App(): JSX.Element {
             overscanRowCount={0}
             cellRangeRenderer={cellRangeRenderer}
             cellRenderer={cellRenderer}
-            {...layoutProps}
+            columnCount={columns.length}
+            rowCount={rows.length + 1}
+            columnWidth={({ index }) => columnWidth.get(index)}
+            rowHeight={({ index }) => index === 0 ? 50 : 30}
           />
         )}
       </RV.AutoSizer>

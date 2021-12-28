@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Endo, insertBefore as _insertBefore, moveToStart } from "./fp"
-import { columnIndexRange, emptyRange, Range } from "./multiRangeRenderer"
+import { columnRange, emptyRange, Range } from "./Range/BBox"
 
 export type Pins = Set<number>
 
@@ -16,6 +16,8 @@ export type UseColumns<T> = {
   insertBefore: (ix: number, target: number) => void
   setColumns: (columns: T[]) => void
 }
+
+const PIN_COLUMN_OFFSET = 0
 
 export function useColumns<T>(initialColumns?: T[]): UseColumns<T> {
   const [columns, setColumns] = useState(initialColumns || [] as T[])
@@ -49,7 +51,7 @@ export function useColumns<T>(initialColumns?: T[]): UseColumns<T> {
     resetPins,
     setPins,
     insertBefore,
-    pinnedRange: pinCount === 0 ? emptyRange : columnIndexRange(1, pinCount),
+    pinnedRange: pinCount === 0 ? emptyRange : columnRange(PIN_COLUMN_OFFSET, PIN_COLUMN_OFFSET + pinCount - 1),
     setColumns(columns) {
       resetPins()
       setColumns(columns)
