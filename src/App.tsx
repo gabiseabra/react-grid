@@ -150,7 +150,7 @@ export default function App(): JSX.Element {
         )
       }
     }]
-  ), [columns, rows, pinCount, selection[0], selection[1], isSelecting])
+  ), [columns, rows, pinCount, selection, isSelecting])
   const cellRangeRenderer = useMemo(() => mkCellRangeRenderer(
     [pipe(pinnedRange, headingRange), stickyRangeRenderer({
       key: "pinned-heading",

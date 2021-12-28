@@ -1,5 +1,5 @@
 import throttle from 'lodash/throttle'
-import { MouseEventHandler, MutableRefObject, RefObject, useEffect, useRef, useState } from "react"
+import { MouseEventHandler, MutableRefObject, RefObject, useEffect, useMemo, useRef, useState } from "react"
 import * as RV from 'react-virtualized'
 import { Endo } from './fp'
 import { Cell, Range, intersects } from "./Range/BBox"
@@ -53,7 +53,7 @@ export function useSelection({
     focus: [NaN, NaN] as Cell,
     pivot: [NaN, NaN] as Cell
   })
-  const selection = mkRange(focus, pivot)
+  const selection = useMemo(() => mkRange(focus, pivot), [focus, pivot])
   const isSelected = (cell: Cell) => intersects([cell, cell])(selection)
   const isFocused = (cell: Cell) => cellCmp(cell, focus)
   useEffect(() => {
