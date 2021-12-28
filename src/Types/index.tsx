@@ -1,3 +1,4 @@
+import './Cell.scss'
 import { BoolCell } from "./Boolean/Cell"
 import { DateCell } from "./Date/Cell"
 import { NumberCell } from "./Number/Cell"

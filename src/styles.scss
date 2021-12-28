@@ -31,23 +31,13 @@ input {
 .sticky-top {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 2;
 }
 .sticky-left {
   position: sticky;
   left: 0;
-  z-index: 1;
+  z-index: 2;
 }
-
-.value-cell {
-  &.selected {
-    background: lightsteelblue;
-  }
-  &.selecting {
-    & > * { pointer-events: none; }
-  }
-  &.focused {
-    border-style: inset;
-    border: 1px solid blue;
-  }
+.sticky-left.sticky-top {
+  z-index: 3;
 }
