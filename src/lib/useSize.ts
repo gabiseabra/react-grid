@@ -20,17 +20,17 @@ export function useSize({
   axis
 }: UseSizeOptions): UseSize {
   const sizeRef: RefObject<{ [k in string]?: number }> = useRef({})
-  const getColumnWidth = (ix: number): number => (
+  const getSize = (ix: number): number => (
     sizeRef.current && sizeRef.current[items[ix].id] || defaultSize
   )
-  const setColumnWidth = (ix: number, size?: number) => {
+  const setSize = (ix: number, size?: number) => {
     if (!sizeRef.current || !gridRef.current) return
     const id = items[ix].id
     sizeRef.current[id] = size
     gridRef.current.recomputeGridSize(axis === "x" ? { columnIndex: ix } : { rowIndex: ix })
   }
   return {
-    get: getColumnWidth,
-    set: setColumnWidth,
+    get: getSize,
+    set: setSize,
   }
 }
