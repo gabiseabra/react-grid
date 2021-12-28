@@ -1,5 +1,4 @@
-import { unionize, ofType } from 'unionize'
-import { Table, ColOf, RowOf, TProxy, ColumnTagsOf } from "./Table"
+import { Table, ColOf, RowOf, TProxy } from "./Table"
 
 type TypeMap = {
   string: string,
