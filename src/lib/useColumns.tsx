@@ -30,7 +30,7 @@ export function useColumns<T>(initialColumns?: T[]): UseColumns<T> {
   }
   const removePin = (ix: number) => {
     if (!isPinned(ix)) return
-    setColumns(_insertBefore(ix, pinCount - 1))
+    setColumns(_insertBefore(ix, pinCount))
     setPinCount((x) => x - 1)
   }
   const insertBefore = (ix: number, target: number) => {
