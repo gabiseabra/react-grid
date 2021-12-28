@@ -4,30 +4,36 @@
   display: flex;
   height: 100%;
   align-items: center;
-  justify-content: space-between;
-  & > span {
+  & > * {
     flex: 1;
-    font-weight: bold;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  & > .controls {
-    flex: 0 12px;
-    .pin-control {
-      background: none;
-      border: none;
-      & > * { color: white }
-      &.disabled > * { color: grey }
-    }
-  }
-  & > .drop-target {
-    flex: 0 12px;
+    display: flex;
     height: 100%;
-    &.is-over {
-      flex: 0 50%;
-      background: grey;
+    align-items: center;
+    justify-content: space-between;
+    span {
+      flex: 1;
+      font-weight: bold;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    & >  .controls {
+      flex: 0 12px;
+      .pin-control {
+        background: none;
+        border: none;
+        & > * { color: white }
+        &.disabled > * { color: grey }
+      }
+    }
+    & > .drop-target {
+      flex: 0 12px;
+      height: 100%;
+      &.is-over {
+        flex: 0 50%;
+        background: grey;
+      }
     }
   }
   & > .react-resizable-handle {

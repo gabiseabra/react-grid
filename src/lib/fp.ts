@@ -14,8 +14,9 @@ export const partition = <T extends unknown>(fn: (a: T) => boolean) => (as: T[])
 
 export const insertBefore = (ix: number, target: number) => (as: any[]): any[] => {
   const [a] = as.splice(ix, 1)
+  if (target > ix) target--
   as.splice(target, 0, a)
-  return as
+  return [...as]
 }
 
 export const moveToStart = (ixs: number[]) => (as: any[]): any[] => {

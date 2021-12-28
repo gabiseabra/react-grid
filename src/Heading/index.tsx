@@ -54,16 +54,18 @@ export function Heading({
       minConstraints={[100, size.height]}
       resizeHandles={["e"]}
     >
-      <div ref={dragRef} className='column-heading' style={size}>
-        <div ref={dropRef} className={cx("drop-target", { "is-over": drop.isOver })} />
-        <span>{column.id}</span>
-        <div className="controls">
-          <button
-            className={cx("pin-control", { disabled: !pinned })}
-            onClick={() => onChangePinned && onChangePinned(!pinned)}
-          >
-            <Icon icon={faThumbtack} />
-          </button>
+      <div className='column-heading' style={size}>
+        <div ref={dragRef}>
+          <div ref={dropRef} className={cx("drop-target", { "is-over": drop.isOver })} />
+          <span>{column.id}</span>
+          <div className="controls">
+            <button
+              className={cx("pin-control", { disabled: !pinned })}
+              onClick={() => onChangePinned && onChangePinned(!pinned)}
+            >
+              <Icon icon={faThumbtack} />
+            </button>
+          </div>
         </div>
       </div>
     </Resizable>
