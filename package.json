@@ -2,6 +2,7 @@
   "name": "react-grid",
   "version": "1.0.0",
   "main": "src/index.tsx",
+  "homepage": "https://gabiseabra.github.io/react-grid",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
