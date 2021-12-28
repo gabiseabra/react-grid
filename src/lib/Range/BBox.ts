@@ -48,7 +48,7 @@ export const columnRange = (minX: number, maxX = minX): Endo<Range> => ([[_minX,
 ]
 
 export const intersects = (a: Range) => (b: Range): boolean => {
-  return (b[0][0] <= a[0][0] && b[1][0] >= a[1][0] && b[0][1] <= a[1][0] && b[1][1] >= a[1][1])
+  return (b[0][0] <= a[0][0] && b[1][0] >= a[1][0] && b[0][1] <= a[0][1] && b[1][1] >= a[1][1])
 }
 
 export const isEmpty = ([[minX, minY], [maxX, maxY]]: Range) => (isNaN(minX) || isNaN(minY) || isNaN(maxX) || isNaN(maxY))

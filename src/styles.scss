@@ -38,3 +38,16 @@ input {
   left: 0;
   z-index: 1;
 }
+
+.value-cell {
+  &.selected {
+    background: lightsteelblue;
+  }
+  &.selecting {
+    & > * { pointer-events: none; }
+  }
+  &.focused {
+    border-style: inset;
+    border: 1px solid blue;
+  }
+}

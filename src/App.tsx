@@ -1,6 +1,7 @@
 import "./styles.scss";
+import cx from 'classnames'
 import pipe from 'lodash/fp/pipe'
-import { Ref, useEffect, useMemo, useRef } from "react";
+import { RefObject, useMemo, useRef } from "react";
 import * as RV from 'react-virtualized'
 import * as T from "./lib/Table";
 import { CellValue, CellTypes } from "./Types";
@@ -12,11 +13,12 @@ import { HTML5Backend } from 'react-dnd-html5-backend'
 import { DndProvider } from 'react-dnd'
 import { useColumns } from "./lib/useColumns";
 import { useRows } from "./lib/useRows";
-import { rowRange } from "./lib/Range/BBox";
+import { Cell, rowRange } from "./lib/Range/BBox";
 import { mkCellRenderer } from "./lib/Range/cellRenderer";
 import { mkCellRangeRenderer } from "./lib/Range/cellRangeRenderer";
 import { getAgg, isGroup } from "./lib/Group";
 import { aggregator } from "./Types/aggregator";
+import { useSelection } from "./lib/useSelection";
 
 const Table = new T.Table(new T.TProxy<CellTypes>(), {
   db_string0: "string",
@@ -75,7 +77,7 @@ const initialRows: Row[] = Array(1000).fill(null).map((_, i) => mkRow(i))
 const headingRange = rowRange(0)
 
 export default function App(): JSX.Element {
-  const gridRef: Ref<RV.Grid> = useRef(null)
+  const gridRef: RefObject<RV.Grid> = useRef(null)
   const {
     columns,
     pinCount,
@@ -91,6 +93,17 @@ export default function App(): JSX.Element {
     setGroupExpanded
   } = useRows(initialRows)
   // useEffect(() => setGroupBy(["db_boolean0"]), [])
+  const {
+    selection,
+    isSelecting,
+    isSelected,
+    isFocused,
+    cellEvents
+  } = useSelection({
+    gridRef,
+    columnCount: columns.length,
+    rowCount: rows.length
+  })
   const columnWidth = useSize({ gridRef, axis: "x", items: columns, defaultSize: 130 })
   const cellRenderer = useMemo(() => mkCellRenderer(
     [headingRange, ({ columnIndex: index, style, key }) => {
@@ -120,14 +133,25 @@ export default function App(): JSX.Element {
         )
       } else {
         const cell = Table.getCell(column.id, row)
+        const coord = Cell({ columnIndex, rowIndex })
+        if (columnIndex === 0 && rowIndex === 1) console.log("00", isSelected(coord))
         return (
-          <div key={key} style={style}>
+          <div
+            key={key}
+            style={style}
+            className={cx("value-cell", {
+              selected: isSelected(coord),
+              selecting: isSelecting,
+              focused: isFocused(coord)
+            })}
+            {...cellEvents(coord)}
+          >
             <CellValue readOnly cell={cell} />
           </div>
         )
       }
     }]
-  ), [columns, rows, pinCount])
+  ), [columns, rows, pinCount, selection[0], selection[1], isSelecting])
   const cellRangeRenderer = useMemo(() => mkCellRangeRenderer(
     [pipe(pinnedRange, headingRange), stickyRangeRenderer({
       key: "pinned-heading",
