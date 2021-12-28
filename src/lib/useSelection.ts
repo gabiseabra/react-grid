@@ -2,8 +2,8 @@ import throttle from 'lodash/throttle'
 import { MouseEventHandler, RefObject, useEffect, useMemo, useState } from "react"
 import * as RV from 'react-virtualized'
 import { Endo } from './fp'
+import UA from './UserAgent'
 import { Cell, Range, intersects } from "./Range/BBox"
-
 
 const min = (a: number, b: number) => Math.min(isNaN(a) ? Infinity : a, isNaN(b) ? Infinity : b)
 const max = (a: number, b: number) => Math.max(isNaN(a) ? -Infinity : a, isNaN(b) ? -Infinity : b)
@@ -13,12 +13,15 @@ const mkRange = (a: Cell, b: Cell): Range => [
   [max(a[0], b[0]), max(a[1], b[1])]
 ]
 
-const getCell = (e: KeyboardEvent): Cell | undefined => {
+const metaKey = (e: KeyboardEvent) => UA.getOS().name === "Mac OS" ? e.metaKey : e.ctrlKey
+
+const getCellDelta = (e: KeyboardEvent): Cell | undefined => {
+  const delta = metaKey(e) ? Infinity : 1
   switch (e.key) {
-    case "ArrowUp": return [0, -1]
-    case "ArrowDown": return [0, 1]
-    case "ArrowLeft": return [-1, 0]
-    case "ArrowRight": return [1, 0]
+    case "ArrowUp": return [0, -delta]
+    case "ArrowDown": return [0, delta]
+    case "ArrowLeft": return [-delta, 0]
+    case "ArrowRight": return [delta, 0]
   }
 }
 
@@ -63,7 +66,7 @@ export function useSelection({
   }, [focus])
   useEffect(() => {
     function keyDownHandler(e: KeyboardEvent) {
-      const delta = getCell(e)
+      const delta = getCellDelta(e)
       if (!delta) return
       e.preventDefault()
       const updateCell: Endo<Cell> = ([x, y]) => [
