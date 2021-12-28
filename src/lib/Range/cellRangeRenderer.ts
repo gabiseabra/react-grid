@@ -5,6 +5,16 @@ import { isEmpty, Range } from './BBox';
 
 export type RangeRenderer = (nodes: ReactNode[], ctx: { bbox: Range } & RV.GridCellRangeProps) => ReactNode[]
 
+/**
+ * Renders _all_ cells in a range with a function, can be used to wrap multiple cells in an html element.
+ * Warning: Each cell is only rendered once, if a multiple ranges match a given
+ * cell the first one that matches gets it, so declare smaller/more specific ranges first.
+ * Usage:
+ * cellRangeRenderer = mkCellRangeRenderer(
+ *   [rowRange(0), (cells) => [<div key="column-heading-cells">{cells}</cells>]],
+ *   [x => x, (cells) => [<div key="value-cells">{cells}</div>]]
+ * )
+ */
 export const mkCellRangeRenderer = (...fns: [Endo<Range>, RangeRenderer][]): RV.GridCellRangeRenderer => (props) => {
   const initialRange = Range(props)
   return multiRangeRenderer(fns.map(([fn, g]) => [fn(initialRange), g]))(props)

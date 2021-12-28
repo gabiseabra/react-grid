@@ -5,6 +5,16 @@ import { Range, all, Cell, intersects } from './BBox';
 
 export type CellRenderer = (props: RV.GridCellProps) => ReactNode
 
+/**
+ * Renders _each_ cell in a range with a GridCellRenderer function.
+ * Warning: Each cell is only rendered once, if a multiple ranges match a given
+ * cell the first one that matches gets it, so declare smaller/more specific ranges first.
+ * Usage:
+ * cellRenderer = mkCellRenderer(
+ *   [rowRange(0), ({ key, style, columnIndex }) => <div key={key} style={style}>{columnIndex}</div>]],
+ *   [x => x, ({ key, style, columnIndex, rowIndex }) => <div key={key} style={style}>{rowIndex}x{columnIndex}</div>]
+ * )
+ */
 export const mkCellRenderer = (...$ranges: [Endo<Range>, CellRenderer][]): RV.GridCellRenderer => {
   const ranges: [Range, CellRenderer][] = $ranges.map(([fn, g]) => [fn(all), g])
   return (props) => {

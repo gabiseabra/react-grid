@@ -1,3 +1,6 @@
+/**
+ * Row grouping functionality
+ */
 import { CellOf, ColOf, RowOf, Table } from "./Table"
 
 type MapList<T> = { [k in keyof T]: T[k][] }

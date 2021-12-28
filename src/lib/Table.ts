@@ -1,7 +1,3 @@
-type TMap = Record<string, any>
-
-type CTMap<T extends TMap> = Record<string, keyof T>
-
 export class TProxy<T> {
   public __Type: T
   constructor() {
@@ -12,6 +8,17 @@ export class TProxy<T> {
 
 type TypeOf<P extends TProxy<any>> = P["__Type"]
 
+type TMap = Record<string, any>
+
+type CTMap<T extends TMap> = Record<string, keyof T>
+
+/**
+ * This class provides type inference and querying methods for handling tabular data.
+ * The generic types `T` and `C` respectively stand for a map of type names to
+ * JS types and a map of column names to type names. The type of rows corresponding
+ * to the table's definition is obtained by `RowOf<Table<*, *>>`.
+ * This is to enable narrowing of arbitrary columns and cells to their respective types.
+ */
 export class Table<T, C extends CTMap<T>> {
   constructor(
     public __TProxy: TProxy<T>,
@@ -31,7 +38,7 @@ export class Table<T, C extends CTMap<T>> {
 }
 
 export type RowOf<T extends Table<any, any>> = {
-  -readonly [k in ColumnTagsOf<T>]: TypeAt<T, k>
+  [k in ColumnTagsOf<T>]: TypeAt<T, k>
 }
 
 export type TaggedColOf<T extends Table<any, any>> = {
