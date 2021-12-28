@@ -24,9 +24,7 @@ const getCell = (e: KeyboardEvent): Cell | undefined => {
 
 type UseSelectionOptions = {
   gridRef: RefObject<RV.Grid>,
-  columnCount: number,
-  rowCount: number,
-  offset?: Cell
+  selectableRange: Range,
 }
 
 type UseSelection = {
@@ -45,8 +43,7 @@ const cellCmp = (a: Cell, b: Cell): boolean => a[0] === b[0] && a[1] === b[1]
 
 export function useSelection({
   gridRef,
-  columnCount,
-  rowCount,
+  selectableRange
 }: UseSelectionOptions): UseSelection {
   const [{ isSelecting, focus, pivot }, setState] = useState({
     isSelecting: false,
@@ -70,8 +67,8 @@ export function useSelection({
       if (!delta) return
       e.preventDefault()
       const updateCell: Endo<Cell> = ([x, y]) => [
-        max(0, min(columnCount - 1, x + delta[0])),
-        max(0, min(rowCount - 1, y + delta[1]))
+        max(selectableRange[0][0], min(selectableRange[1][0] - 1, x + delta[0])),
+        max(selectableRange[0][1], min(selectableRange[1][1] - 1, y + delta[1]))
       ]
       setState((state) => ({
         ...state,
@@ -90,8 +87,8 @@ export function useSelection({
     cellEvents: (cell) => ({
       onMouseDown: (e) => setState((state) => ({
         isSelecting: true,
-        focus: cell,
-        pivot: e.shiftKey ? state.pivot : cell
+        focus: e.shiftKey ? state.focus : cell,
+        pivot: cell
       })),
       onMouseUp: () => setState((state) => ({ ...state, isSelecting: false })),
       onMouseMove: throttle(() => {

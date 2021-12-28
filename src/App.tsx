@@ -101,8 +101,7 @@ export default function App(): JSX.Element {
     cellEvents
   } = useSelection({
     gridRef,
-    columnCount: columns.length,
-    rowCount: rows.length
+    selectableRange: [[0, 1], [columns.length, rows.length + 1]]
   })
   const columnWidth = useSize({ gridRef, axis: "x", items: columns, defaultSize: 130 })
   const cellRenderer = useMemo(() => mkCellRenderer(
