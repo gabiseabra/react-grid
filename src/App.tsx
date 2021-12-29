@@ -206,7 +206,14 @@ export default function App(): JSX.Element {
         )
       }
     }]
-  ), [columns, pins.pinCount, selection.selection, groupBy.groupedRows, orderBy.orderedBy])
+  ), [
+    columns,
+    pins.pinCount,
+    selection.selection,
+    selection.isSelecting,
+    groupBy.groupedRows,
+    orderBy.orderedBy,
+  ])
 
   const cellRangeRenderer = useMemo(() => mkCellRangeRenderer(
     [pipe(pins.pinnedRange, headingRange), stickyRangeRenderer({
