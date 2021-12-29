@@ -1,7 +1,7 @@
 import "./styles.scss"
 
 import pipe from "lodash/fp/pipe"
-import { RefObject, useEffect, useMemo, useRef } from "react"
+import { RefObject, useEffect, useMemo, useRef, useState } from "react"
 import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import * as RV from "react-virtualized"
@@ -11,7 +11,10 @@ import { HeadingCell } from "./components/HeadingCell"
 import { TypeMap } from "./components/Types"
 import { arbitraryValue } from "./components/Types/arbitrary"
 import { ValueCell } from "./components/ValueCell"
-import { isGroup } from "./lib/Group"
+import { isGroup, useGroupBy } from "./lib/hooks/useGroupBy"
+import { usePins } from "./lib/hooks/usePins"
+import { useSelection } from "./lib/hooks/useSelection"
+import { useSize } from "./lib/hooks/useSize"
 import {
   Cell,
   mkCellRangeRenderer,
@@ -20,10 +23,6 @@ import {
   stickyRangeRenderer,
 } from "./lib/Range"
 import * as T from "./lib/Table"
-import { useColumns } from "./lib/useColumns"
-import { useRows } from "./lib/useRows"
-import { useSelection } from "./lib/useSelection"
-import { useSize } from "./lib/useSize"
 
 const Table = new T.Table(new T.TProxy<TypeMap>(), {
   db_string0: "string",
@@ -147,44 +146,23 @@ const HEADER_HEIGHT = 70
 
 export default function App(): JSX.Element {
   const gridRef: RefObject<RV.Grid> = useRef(null)
+  const [rows, setRows] = useState(initialRows)
+  const [columns, setColumns] = useState(initialColumns)
 
-  const {
-    columns,
-    pinCount,
-    isPinned,
-    addPin,
-    removePin,
-    pinnedRange,
-    insertBefore,
-  } = useColumns(initialColumns)
-
-  const {
-    rows,
-    groupBy,
-    addGroupBy,
-    removeGroupBy,
-    setGroupExpanded,
-  } = useRows(initialRows)
-
-  useEffect(() => gridRef.current?.recomputeGridSize(), [columns])
-
-  const {
-    selection,
-    isSelecting,
-    isSelected,
-    isFocused,
-    cellEvents,
-  } = useSelection({
+  const pins = usePins(setColumns)
+  const groupBy = useGroupBy(rows)
+  const selection = useSelection({
     gridRef,
     selectableRange: [[0, 1], [columns.length, rows.length + 1]],
   })
-
   const columnWidth = useSize({
     gridRef,
     axis: "x",
     defaultSize: 130,
     getKey: (ix) => columns[ix].id,
   })
+
+  useEffect(() => gridRef.current?.recomputeGridSize(), [columns])
 
   const cellRenderer = useMemo(() => mkCellRenderer(
     [headingRange, ({ columnIndex: index, style, key }) => {
@@ -194,23 +172,23 @@ export default function App(): JSX.Element {
           <HeadingCell
             column={column}
             columnIndex={index}
-            isPinned={isPinned(index)}
-            isGrouped={groupBy.includes(column.id)}
+            isPinned={pins.isPinned(index)}
+            isGrouped={groupBy.groupedColumns.includes(column.id)}
             size={{ width: columnWidth.get(index), height: HEADER_HEIGHT }}
-            onChangePinned={(pinned) => pinned ? addPin(index) : removePin(index)}
-            onChangeGrouped={(grouped) => grouped ? addGroupBy(column.id) : removeGroupBy(column.id)}
+            onChangePinned={(pinned) => pinned ? pins.addPin(index) : pins.removePin(index)}
+            onChangeGrouped={(grouped) => grouped ? groupBy.addGroupBy(column.id) : groupBy.removeGroupBy(column.id)}
             onResize={({ width }) => columnWidth.set(index, width)}
-            onDrop={(ix) => insertBefore(ix, index)}
+            onDrop={(ix) => pins.insertBefore(ix, index)}
           />
         </div>
       )
     }],
     [x => x, ({ columnIndex, rowIndex, style, key }) => {
       const column = columns[columnIndex]
-      const row = rows[rowIndex - 1]
+      const row = groupBy.groupedRows[rowIndex - 1]
       if (isGroup(row)) {
         return (
-          <div key={key} style={style} onClick={() => setGroupExpanded(row.key, !row.expanded)}>
+          <div key={key} style={style} onClick={() => groupBy.setExpanded(row.key, !row.isExpanded)}>
             <GroupCell column={column} rows={row.entries} />
           </div>
         )
@@ -218,24 +196,24 @@ export default function App(): JSX.Element {
         const cell = Table.getCell(column.id, row)
         const coord = Cell({ columnIndex, rowIndex })
         return (
-          <div key={key} style={style} {...cellEvents(coord)}>
-            <ValueCell cell={cell} isFocused={isFocused(coord)} isSelected={isSelected(coord)} />
+          <div key={key} style={style} {...selection.cellEvents(coord)}>
+            <ValueCell cell={cell} isFocused={selection.isFocused(coord)} isSelected={selection.isSelected(coord)} />
           </div>
         )
       }
     }]
-  ), [columns, rows, pinCount, selection, isSelecting, groupBy])
+  ), [columns, rows, pins.pinCount, selection.selection, groupBy.groups])
 
   const cellRangeRenderer = useMemo(() => mkCellRangeRenderer(
-    [pipe(pinnedRange, headingRange), stickyRangeRenderer({
+    [pipe(pins.pinnedRange, headingRange), stickyRangeRenderer({
       key: "pinned-heading",
       top: true,
       left: true,
     })],
     [headingRange, stickyRangeRenderer({ key: "heading", top: true })],
-    [pinnedRange, stickyRangeRenderer({ key: "pinned", left: true })],
+    [pins.pinnedRange, stickyRangeRenderer({ key: "pinned", left: true })],
     [x => x, x => x]
-  ), [pinCount])
+  ), [pins.pinCount])
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -250,7 +228,7 @@ export default function App(): JSX.Element {
             cellRangeRenderer={cellRangeRenderer}
             cellRenderer={cellRenderer}
             columnCount={columns.length}
-            rowCount={rows.length + 1}
+            rowCount={groupBy.groupedRows.length + 1}
             columnWidth={({ index }) => columnWidth.get(index)}
             rowHeight={({ index }) => index === 0 ? HEADER_HEIGHT : 30}
           />

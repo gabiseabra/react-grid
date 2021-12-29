@@ -1,4 +1,4 @@
-import { Agg } from "../../lib/Group"
+import { Agg } from "../../lib/Agg"
 import { TypeMap } from "./TypeMap"
 
 export const aggregator: Agg<TypeMap> = (agg) => {

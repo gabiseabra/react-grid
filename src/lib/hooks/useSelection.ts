@@ -2,9 +2,9 @@ import throttle from "lodash/throttle"
 import { MouseEventHandler, RefObject, useEffect, useMemo, useState } from "react"
 import * as RV from "react-virtualized"
 
-import { Endo } from "./fp"
-import { Cell, isInside, Range } from "./Range"
-import UA from "./UserAgent"
+import { Endo } from "../fp"
+import { Cell, isInside, Range } from "../Range"
+import UA from "../UserAgent"
 
 const min = (a: number, b: number) => Math.min(isNaN(a) ? Infinity : a, isNaN(b) ? Infinity : b)
 const max = (a: number, b: number) => Math.max(isNaN(a) ? -Infinity : a, isNaN(b) ? -Infinity : b)

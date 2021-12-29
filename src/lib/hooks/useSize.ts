@@ -11,7 +11,6 @@ type UseSizeOptions = {
 type UseSize = {
   get: (ix: number) => number
   set: (ix: number, size?: number) => void
-  reset: () => void
 }
 
 function useRefCurrent<T>(a: T): MutableRefObject<T> {
@@ -39,9 +38,5 @@ export function useSize({
   return {
     get: getSize,
     set: setSize,
-    reset() {
-      sizeRef.current = {}
-      gridRef.current?.recomputeGridSize()
-    },
   }
 }
