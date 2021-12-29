@@ -17,9 +17,15 @@ export const aggregator: Agg<TypeMap> = (agg) => {
       return { type: "number", value }
     }
     case "boolean": {
+      if (!agg.value.length) return { type: "percent", value: null }
       const trueCount = agg.value.reduce<number>((acc, x) => acc + Number(x), 0)
       const value = trueCount / agg.value.length
-      return { type: "number", value }
+      return { type: "percent", value }
+    }
+    case "percent": {
+      if (!agg.value.length) return { type: "percent", value: null }
+      const value = agg.value.reduce<number>((acc, x) => acc + (x || 0), 0) / agg.value.length
+      return { type: "percent", value }
     }
     case "date": return { type: "date", value: null }
   }

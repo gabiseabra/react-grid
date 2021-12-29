@@ -3,6 +3,7 @@ import cx from "classnames"
 import { BoolValue } from "./Boolean/Value"
 import { DateValue } from "./Date/Value"
 import { NumberValue } from "./Number/Value"
+import { PercentValue } from "./Percent/Value"
 import { StringValue } from "./String/Value"
 import { TypeMap } from "./TypeMap"
 
@@ -27,6 +28,8 @@ export function Value({ cell, ...props }: ValueProps): JSX.Element {
       return <StringValue value={cell.value} onChange={cell.onChange} {...props} />
     case "number":
       return <NumberValue value={cell.value} onChange={cell.onChange} {...props} />
+    case "percent":
+      return <PercentValue value={cell.value} onChange={cell.onChange} {...props} />
     case "date":
       return <DateValue value={cell.value} onChange={cell.onChange} {...props} />
   }
