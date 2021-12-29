@@ -35,7 +35,7 @@ function HeadingToggleControls({
         ) : ordering?.[0] === "ASC" ? (
           <Icon icon={faArrowDown} />
         ) : null}
-        {ordering && <span>{ordering[1]}</span>}
+        {ordering && <span>{ordering[1] + 1}</span>}
       </button>
       <button
         className={cx("groupControl", { disabled: !isGrouped })}
