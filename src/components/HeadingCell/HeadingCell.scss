@@ -4,6 +4,7 @@
   display: flex;
   height: 100%;
   align-items: center;
+  box-shadow: 0px 0px 0 0.5px inset #6a6aff;
   &.isOver {
     background: rgb(0, 0, 155);
   }
@@ -45,12 +46,30 @@
       border: none;
       cursor: pointer;
       & > * { height: 100%; color: white }
-      &.disabled > * { opacity: 0.5; }
+      &.disabled > * { color: #6a6aff; }
     }
   }
   .react-resizable-handle {
-    flex: 0 10px;
+    visibility: hidden;
+    position: absolute;
+    top: 0;
+    right: -8px;
+    width: 16px;
     height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: ew-resize;
+    z-index: 1;
+    &::before {
+      content: ' ';
+      display: block;
+      height: 25px;
+      width: 2px;
+      border-radius: 1.5px;
+      background: white;
+    }
+    &:hover { visibility: visible; }
   }
+  &:hover .react-resizable-handle { visibility: visible; }
 }
