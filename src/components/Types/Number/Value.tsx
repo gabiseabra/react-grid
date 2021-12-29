@@ -14,6 +14,7 @@ export function NumberValue({ value, onChange, ...props }: NumberValueProps): JS
   return (
     <input
       type="number"
+      step="1"
       value={String(value || 0)}
       onChange={!onChange ? undefined : (e) => onChange(parseNumber(e.target.value))}
       {...props}

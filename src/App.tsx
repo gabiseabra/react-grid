@@ -8,7 +8,7 @@ import * as RV from "react-virtualized"
 
 import { GroupCell } from "./components/GroupCell"
 import { HeadingCell } from "./components/HeadingCell"
-import { TypeMap } from "./components/Types"
+import { compare, TypeMap } from "./components/Types"
 import { arbitraryValue } from "./components/Types/arbitrary"
 import { ValueCell } from "./components/ValueCell"
 import { isGroup, useGroupBy } from "./lib/hooks/useGroupBy"
@@ -24,6 +24,7 @@ import {
   stickyRangeRenderer,
 } from "./lib/Range"
 import * as T from "./lib/Table"
+import { Tuple } from "./lib/TypeOps"
 
 const Table = new T.Table(new T.TProxy<TypeMap>(), {
   db_string0: "string",
@@ -151,7 +152,11 @@ export default function App(): JSX.Element {
   const [columns, setColumns] = useState(initialColumns)
 
   const pins = usePins(setColumns)
-  const orderBy = useOrderBy(setRows)
+  const orderBy = useOrderBy(setRows, (id, a, b) => compare({
+    type: Table.getCol(id).type,
+    a: a[id],
+    b: b[id],
+  } as Tuple<TypeMap>))
   const groupBy = useGroupBy(rows)
   const selection = useSelection({
     gridRef,

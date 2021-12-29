@@ -1,13 +1,15 @@
+import { Big } from "big.js"
+
 type PercentValueProps = {
-  value: number | null;
-  onChange?: (value: number | null) => any
+  value: Big | null;
+  onChange?: (value: Big | null) => any
   readOnly?: boolean;
   className?: string;
 };
 
-const parseNumber = (value: string): number | null => {
+const parseBig = (value: string): Big | null => {
   const num = parseInt(value)
-  return isNaN(num) ? null : Math.max(0, Math.min(1, num))
+  return isNaN(num) ? null : new Big(Math.max(0, Math.min(1, num)))
 }
 
 export function PercentValue({ value, onChange, ...props }: PercentValueProps): JSX.Element {
@@ -15,8 +17,8 @@ export function PercentValue({ value, onChange, ...props }: PercentValueProps): 
     <input
       type="number"
       step="0.01"
-      value={String(value || 0)}
-      onChange={!onChange ? undefined : (e) => onChange(parseNumber(e.target.value))}
+      value={String(value?.toPrecision(2) || 0)}
+      onChange={!onChange ? undefined : (e) => onChange(parseBig(e.target.value))}
       {...props}
     />
   )

@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 
 import { ColOf, RowOf, Table } from "../../lib/Table"
-import { aggregator, TypeMap } from "../Types"
+import { aggregate, TypeMap } from "../Types"
 import { ValueCell } from "../ValueCell"
 
 export type GroupCellProps = {
@@ -13,7 +13,7 @@ export function GroupCell({
   column,
   rows,
 }: GroupCellProps): JSX.Element {
-  const cell = useMemo(() => aggregator({
+  const cell = useMemo(() => aggregate({
     type: column.type,
     value: rows.map((row) => row[column.id]),
   }), [column.id, rows])

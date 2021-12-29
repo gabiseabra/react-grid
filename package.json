@@ -20,6 +20,7 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "@fortawesome/react-fontawesome": "^0.1.16",
+    "big.js": "^6.1.1",
     "classnames": "^2.3.1",
     "faker": "^5.5.3",
     "lodash": "^4.17.21",
@@ -32,6 +33,7 @@
     "ua-parser-js": "^1.0.2"
   },
   "devDependencies": {
+    "@types/big.js": "^6.1.2",
     "@types/classnames": "^2.3.1",
     "@types/faker": "^5.5.9",
     "@types/jest": "^27.0.3",

@@ -1,12 +1,14 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 
+export type Compare<T> = (id: keyof T, a: T, b: T) => number
+
 export type Ordering = "ASC" | "DESC"
 
-const orderBy = <T>(orderedBy: Map<keyof T, Ordering>) => (a: T, b: T): number => {
+const orderBy = <T>(orderedBy: Map<keyof T, Ordering>, compare: Compare<T>) => (a: T, b: T): number => {
   for (const [id, ord] of Array.from(orderedBy)) {
     const mod = ord === "ASC" ? 1 : -1
-    if (a[id] > b[id]) return 1 * mod
-    if (a[id] < b[id]) return -1 * mod
+    const cmp = compare(id, a, b)
+    if (cmp) return cmp * mod
   }
   return 0
 }
@@ -19,7 +21,7 @@ export type UseOrderBy<T> = {
   setOrderBy: (ord: Map<T, Ordering>) => void
 }
 
-export function useOrderBy<T>(setRows: Dispatch<SetStateAction<T[]>>): UseOrderBy<keyof T> {
+export function useOrderBy<T>(setRows: Dispatch<SetStateAction<T[]>>, compare: Compare<T>): UseOrderBy<keyof T> {
   const [orderedBy, setOrderBy] = useState(new Map() as Map<keyof T, Ordering>)
 
   const addOrderBy = (id: keyof T, ord: Ordering) => setOrderBy((state) => {
@@ -39,7 +41,7 @@ export function useOrderBy<T>(setRows: Dispatch<SetStateAction<T[]>>): UseOrderB
   }
 
   useEffect(() => {
-    setRows((rows) => [...rows].sort(orderBy(orderedBy)))
+    setRows((rows) => [...rows].sort(orderBy(orderedBy, compare)))
   }, [orderedBy])
 
   return {
