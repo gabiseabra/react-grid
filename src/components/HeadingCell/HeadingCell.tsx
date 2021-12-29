@@ -59,7 +59,7 @@ type HeadingCellProps = {
   size: { width: number, height: number }
   onDrop?: (ix: number) => void
   onResize?: (size: { width: number, height: number }) => void
-  onChangeOrdering: (ord?: Ordering) => void
+  onChangeOrdering?: (ord?: Ordering) => void
 } & HeadingToggleControlsProps
 
 type DnDItem = { columnIndex: number }
@@ -90,7 +90,7 @@ export function HeadingCell({
     }),
   }))
 
-  const onResize = useCallback(throttle((e, { size }) => $onResize?.(size), 5), [])
+  const onResize = useCallback(throttle((e, { size }) => $onResize?.(size), 5), [column.id])
 
   const onClick = useCallback((e: MouseEvent) => {
     if (!e.shiftKey) return
@@ -100,7 +100,7 @@ export function HeadingCell({
       "ASC": "DESC" as Ordering,
       "DESC": undefined,
     }[ordering ? ordering[0] : "NONE"])
-  }, [ordering])
+  }, [column.id, ordering])
 
   if (drag.isDragging) {
     return <div ref={previewRef} className="HeadingCell" />
