@@ -4,19 +4,19 @@ import { Value, ValueProps } from "../Types"
 
 export type ValueCellProps = {
   cell: ValueProps["cell"]
-  isGroup?: boolean
   isSelected?: boolean
   isFocused?: boolean
+  className?: string
 }
 
 export function ValueCell({
   cell,
-  isGroup,
   isSelected,
   isFocused,
+  className,
 }: ValueCellProps): JSX.Element {
   return (
-    <div className={cx("ValueCell", { isGroup, isSelected, isFocused })}>
+    <div className={cx("ValueCell", className, { isSelected, isFocused })}>
       <Value readOnly cell={cell} />
     </div>
   )

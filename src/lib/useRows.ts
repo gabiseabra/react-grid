@@ -7,6 +7,8 @@ export type RowGroup<R> = Group<R> & { expanded?: boolean }
 export type UseRows<R> = {
   rows: (RowGroup<R> | R)[]
   groupBy: (keyof R)[]
+  addGroupBy: (id: keyof R) => void
+  removeGroupBy: (id: keyof R) => void
   setGroupBy: (ids: (keyof R)[]) => void
   setGroupExpanded: (key: string, expanded: boolean) => void
   setRows: (rows: R[]) => void
@@ -35,6 +37,8 @@ export function useRows<R>(initialRows?: R[]): UseRows<R> {
     rows: groupedRows,
     groupBy,
     setGroupBy,
+    addGroupBy: (id) => setGroupBy((ids) => Array.from(new Set([...ids, id]))),
+    removeGroupBy: (id) => setGroupBy((ids) => ids.filter(($id) => $id !== id)),
     setGroupExpanded(key, expanded) {
       setGroups((groups) => groups.map((group) => {
         if (group.key === key) return { ...group, expanded }

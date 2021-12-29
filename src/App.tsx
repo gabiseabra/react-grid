@@ -6,12 +6,12 @@ import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import * as RV from "react-virtualized"
 
+import { GroupCell } from "./components/GroupCell"
 import { HeadingCell } from "./components/HeadingCell"
 import { TypeMap } from "./components/Types"
-import { aggregator } from "./components/Types/aggregator"
 import { arbitraryValue } from "./components/Types/arbitrary"
 import { ValueCell } from "./components/ValueCell"
-import { getAgg, isGroup } from "./lib/Group"
+import { isGroup } from "./lib/Group"
 import {
   Cell,
   mkCellRangeRenderer,
@@ -136,9 +136,14 @@ const mkRow = (i: number): Row => initialColumns.reduce((acc, { id, type }) => (
 
 const initialColumns: Col[] = (Object.keys(Table.Columns) as T.ColumnTagsOf<typeof Table>[]).map((id) => Table.getCol(id))
 
-const initialRows: Row[] = Array(1000000).fill(mkRow(0))
+// Very large but not random (takes too long to generate 1M rows)
+// const initialRows: Row[] = Array(1000000).fill(mkRow(0))
+// Smaller and random
+const initialRows: Row[] = Array(10000).fill(null).map(() => mkRow(0))
 
 const headingRange = rowRange(0)
+
+const HEADER_HEIGHT = 70
 
 export default function App(): JSX.Element {
   const gridRef: RefObject<RV.Grid> = useRef(null)
@@ -155,11 +160,12 @@ export default function App(): JSX.Element {
 
   const {
     rows,
-    setGroupBy,
+    groupBy,
+    addGroupBy,
+    removeGroupBy,
     setGroupExpanded,
   } = useRows(initialRows)
 
-  // useEffect(() => setGroupBy(["db_boolean0"]), [])
   useEffect(() => gridRef.current?.recomputeGridSize(), [columns])
 
   const {
@@ -189,8 +195,10 @@ export default function App(): JSX.Element {
             column={column}
             columnIndex={index}
             isPinned={isPinned(index)}
-            size={{ width: columnWidth.get(index), height: 50 }}
+            isGrouped={groupBy.includes(column.id)}
+            size={{ width: columnWidth.get(index), height: HEADER_HEIGHT }}
             onChangePinned={(pinned) => pinned ? addPin(index) : removePin(index)}
+            onChangeGrouped={(grouped) => grouped ? addGroupBy(column.id) : removeGroupBy(column.id)}
             onResize={({ width }) => columnWidth.set(index, width)}
             onDrop={(ix) => insertBefore(ix, index)}
           />
@@ -203,7 +211,7 @@ export default function App(): JSX.Element {
       if (isGroup(row)) {
         return (
           <div key={key} style={style} onClick={() => setGroupExpanded(row.key, !row.expanded)}>
-            <ValueCell isGroup cell={getAgg(column, row.entries, aggregator)} />
+            <GroupCell column={column} rows={row.entries} />
           </div>
         )
       } else {
@@ -216,7 +224,7 @@ export default function App(): JSX.Element {
         )
       }
     }]
-  ), [columns, rows, pinCount, selection, isSelecting])
+  ), [columns, rows, pinCount, selection, isSelecting, groupBy])
 
   const cellRangeRenderer = useMemo(() => mkCellRangeRenderer(
     [pipe(pinnedRange, headingRange), stickyRangeRenderer({
@@ -244,7 +252,7 @@ export default function App(): JSX.Element {
             columnCount={columns.length}
             rowCount={rows.length + 1}
             columnWidth={({ index }) => columnWidth.get(index)}
-            rowHeight={({ index }) => index === 0 ? 50 : 30}
+            rowHeight={({ index }) => index === 0 ? HEADER_HEIGHT : 30}
           />
         )}
       </RV.AutoSizer>
