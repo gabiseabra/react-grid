@@ -11,34 +11,68 @@ import { Resizable } from "react-resizable"
 
 import { Ordering } from "../../lib/hooks/useOrderBy"
 
+type HeadingToggleControlsProps = {
+  ordering?: [Ordering, number]
+  isPinned?: boolean
+  isGrouped?: boolean
+  onChangePinned?: (pinned: boolean) => void
+  onChangeGrouped?: (grouped: boolean) => void
+}
+
+function HeadingToggleControls({
+  ordering,
+  isGrouped,
+  isPinned,
+  onChangeGrouped,
+  onChangePinned,
+}: HeadingToggleControlsProps): JSX.Element {
+  return (
+    <div className="toggleControls">
+      <div className="space" />
+      <button className={cx("ordControl", { disabled: !ordering })}>
+        {ordering?.[0] === "DESC" ? (
+          <Icon icon={faArrowUp} />
+        ) : ordering?.[0] === "ASC" ? (
+          <Icon icon={faArrowDown} />
+        ) : null}
+        {ordering && <span>{ordering[1]}</span>}
+      </button>
+      <button
+        className={cx("groupControl", { disabled: !isGrouped })}
+        onClick={() => onChangeGrouped?.(!isGrouped)}
+      >
+        <Icon icon={faLayerGroup} />
+      </button>
+      <button
+        className={cx("pinControl", { disabled: !isPinned })}
+        onClick={() => onChangePinned?.(!isPinned)}
+      >
+        <Icon icon={faThumbtack} />
+      </button>
+    </div>
+  )
+}
+
 type HeadingCellProps = {
   column: { id: string }
   columnIndex: number
-  isPinned?: boolean
-  isGrouped?: boolean
   size: { width: number, height: number }
-  ordering?: [Ordering, number]
   onDrop?: (ix: number) => void
-  onChangePinned?: (pinned: boolean) => void
-  onChangeGrouped?: (grouped: boolean) => void
-  onChangeOrdering?: (ordering?: Ordering) => void
   onResize?: (size: { width: number, height: number }) => void
-}
+  onChangeOrdering: (ord?: Ordering) => void
+} & HeadingToggleControlsProps
 
 type DnDItem = { columnIndex: number }
 
 export function HeadingCell({
   column,
   columnIndex,
-  isPinned,
-  isGrouped,
   size,
   ordering,
   onDrop,
-  onChangePinned,
-  onChangeGrouped,
   onChangeOrdering,
   onResize: $onResize,
+  ...props
 }: HeadingCellProps): JSX.Element {
   const [drag, dragRef, previewRef] = useDrag(() => ({
     type: "column", item: { columnIndex } as DnDItem,
@@ -71,6 +105,7 @@ export function HeadingCell({
   if (drag.isDragging) {
     return <div ref={previewRef} className="HeadingCell" />
   }
+
   return (
     <Resizable
       axis="x"
@@ -87,29 +122,10 @@ export function HeadingCell({
       >
         <div ref={dragRef} className="dragSource">
           <div ref={dropRef} className="dropTarget" />
-          <div className="toggleControls">
-            <button
-              className={cx("groupControl", { disabled: !isGrouped })}
-              onClick={() => onChangeGrouped?.(!isGrouped)}
-            >
-              <Icon icon={faLayerGroup} />
-            </button>
-            <button
-              className={cx("pinControl", { disabled: !isPinned })}
-              onClick={() => onChangePinned?.(!isPinned)}
-            >
-              <Icon icon={faThumbtack} />
-            </button>
-            <button className={cx("ordControl", { isOrdering: Boolean(ordering) })}>
-              {ordering?.[0] === "DESC" ? (
-                <Icon icon={faArrowUp} />
-              ) : ordering?.[0] === "ASC" ? (
-                <Icon icon={faArrowDown} />
-              ) : null}
-              {ordering && <span>{ordering[1]}</span>}
-            </button>
+          <HeadingToggleControls ordering={ordering} {...props} />
+          <div className="title">
+            {column.id}
           </div>
-          <span className="title">{column.id}</span>
         </div>
       </div>
     </Resizable>
