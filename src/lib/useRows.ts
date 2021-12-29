@@ -24,11 +24,11 @@ export function useRows<R>(initialRows?: R[]): UseRows<R> {
 
   const groupedRows: (RowGroup<R> | R)[] = useMemo(() => {
     if (!groups.length) return rows
-    return groups.reduce((acc, g) => {
-      acc.push(g)
-      if (g.expanded) acc.push(...g.entries)
-      return acc
-    }, [] as (RowGroup<R> | R)[])
+    return groups.reduce((acc, g) => (
+      g.expanded
+        ? acc.concat(g, g.entries)
+        : acc.concat(g)
+    ), [] as (RowGroup<R> | R)[])
   }, [groups])
 
   return {

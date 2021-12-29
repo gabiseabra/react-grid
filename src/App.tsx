@@ -159,8 +159,8 @@ export default function App(): JSX.Element {
     setGroupExpanded,
   } = useRows(initialRows)
 
-  //useEffect(() => setGroupBy(["db_boolean0"]), [])
-  useEffect(() => gridRef.current?.recomputeGridSize(), [columns, rows])
+  // useEffect(() => setGroupBy(["db_boolean0"]), [])
+  useEffect(() => gridRef.current?.recomputeGridSize(), [columns])
 
   const {
     selection,
