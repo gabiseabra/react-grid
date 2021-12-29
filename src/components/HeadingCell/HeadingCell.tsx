@@ -6,10 +6,10 @@ import { useCallback } from "react"
 import { useDrag, useDrop } from "react-dnd"
 import { Resizable } from "react-resizable"
 
-type HeadingProps = {
+type HeadingCellProps = {
   column: { id: string }
   columnIndex: number,
-  pinned?: boolean,
+  isPinned?: boolean,
   size: { width: number, height: number },
   onDrop?: (ix: number) => void
   onChangePinned?: (pinned: boolean) => void,
@@ -18,15 +18,15 @@ type HeadingProps = {
 
 type DnDItem = { columnIndex: number }
 
-export function Heading({
+export function HeadingCell({
   column,
   columnIndex,
-  pinned,
+  isPinned,
   size,
   onDrop,
   onChangePinned,
   onResize: $onResize,
-}: HeadingProps): JSX.Element {
+}: HeadingCellProps): JSX.Element {
   const onResize = useCallback(throttle((e, { size }) => $onResize && $onResize(size), 5), [])
   const [drag, dragRef, previewRef] = useDrag(() => ({
     type: "column", item: { columnIndex } as DnDItem,
@@ -38,11 +38,12 @@ export function Heading({
     accept: "column",
     drop: ({ columnIndex: ix }: DnDItem) => onDrop && onDrop(ix),
     collect: (monitor) => ({
+      isDragging: Boolean(monitor.getItem()),
       isOver: monitor.isOver({ shallow: true }),
     }),
   }))
   if (drag.isDragging) {
-    return <div ref={previewRef} className="column-heading" />
+    return <div ref={previewRef} className="HeadingCell" />
   }
   return (
     <Resizable
@@ -53,14 +54,14 @@ export function Heading({
       minConstraints={[100, size.height]}
       resizeHandles={["e"]}
     >
-      <div className='column-heading' style={size}>
-        <div ref={dragRef}>
-          <div ref={dropRef} className={cx("drop-target", { "is-over": drop.isOver })} />
-          <span>{column.id}</span>
+      <div className={cx("HeadingCell", drop)} style={size}>
+        <div ref={dragRef} className="dragSource">
+          <div ref={dropRef} className="dropTarget" />
+          <span className="title">{column.id}</span>
           <div className="controls">
             <button
-              className={cx("pin-control", { disabled: !pinned })}
-              onClick={() => onChangePinned && onChangePinned(!pinned)}
+              className={cx("pinControl", { disabled: !isPinned })}
+              onClick={() => onChangePinned && onChangePinned(!isPinned)}
             >
               <Icon icon={faThumbtack} />
             </button>

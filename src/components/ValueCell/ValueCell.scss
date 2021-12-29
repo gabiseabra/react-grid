@@ -1,0 +1,17 @@
+.ValueCell {
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  background: white;
+  box-shadow: 0 0 0 0.5px inset lightslategray;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  &.isSelected {
+    background: lightsteelblue;
+  }
+  &.isFocused {
+    z-index: 1;
+    box-shadow: 0 0 0 1px inset blue;
+  }
+}

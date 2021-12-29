@@ -1,16 +1,16 @@
 import "./styles.scss"
 
-import cx from "classnames"
 import pipe from "lodash/fp/pipe"
 import { RefObject, useMemo, useRef } from "react"
 import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import * as RV from "react-virtualized"
 
-import { Heading } from "./components/HeadingCell/HeadingCell"
-import { TypeMap, Value } from "./components/Types"
+import { HeadingCell } from "./components/HeadingCell"
+import { TypeMap } from "./components/Types"
 import { aggregator } from "./components/Types/aggregator"
 import { arbitraryValue } from "./components/Types/arbitrary"
+import { ValueCell } from "./components/ValueCell"
 import { getAgg, isGroup } from "./lib/Group"
 import {
   Cell,
@@ -120,10 +120,10 @@ export default function App(): JSX.Element {
       const column = columns[index]
       return (
         <div key={key} style={style}>
-          <Heading
+          <HeadingCell
             column={column}
             columnIndex={index}
-            pinned={isPinned(index)}
+            isPinned={isPinned(index)}
             size={{ width: columnWidth.get(index), height: 50 }}
             onChangePinned={(pinned) => pinned ? addPin(index) : removePin(index)}
             onResize={({ width }) => columnWidth.set(index, width)}
@@ -138,24 +138,15 @@ export default function App(): JSX.Element {
       if (isGroup(row)) {
         return (
           <div key={key} style={style} onClick={() => setGroupExpanded(row.key, !row.expanded)}>
-            <Value readOnly cell={getAgg(column, row.entries, aggregator)} />
+            <ValueCell isGroup cell={getAgg(column, row.entries, aggregator)} />
           </div>
         )
       } else {
         const cell = Table.getCell(column.id, row)
         const coord = Cell({ columnIndex, rowIndex })
         return (
-          <div
-            key={key}
-            style={style}
-            className={cx("value-cell", {
-              selected: isSelected(coord),
-              selecting: isSelecting,
-              focused: isFocused(coord),
-            })}
-            {...cellEvents(coord)}
-          >
-            <Value readOnly cell={cell} />
+          <div key={key} style={style} {...cellEvents(coord)}>
+            <ValueCell cell={cell} isFocused={isFocused(coord)} isSelected={isSelected(coord)} />
           </div>
         )
       }
