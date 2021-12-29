@@ -136,7 +136,7 @@ const mkRow = (i: number): Row => initialColumns.reduce((acc, { id, type }) => (
 
 const initialColumns: Col[] = (Object.keys(Table.Columns) as T.ColumnTagsOf<typeof Table>[]).map((id) => Table.getCol(id))
 
-const initialRows: Row[] = Array(1000).fill(null).map((_, i) => mkRow(i))
+const initialRows: Row[] = Array(10000).fill(mkRow(0))
 
 const headingRange = rowRange(0)
 
