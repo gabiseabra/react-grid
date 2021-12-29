@@ -14,19 +14,26 @@ type UseSize = {
   reset: () => void
 }
 
+function useRefCurrent<T>(a: T): MutableRefObject<T> {
+  const ref = useRef(a)
+  ref.current = a
+  return ref
+}
+
 export function useSize({
   gridRef,
   defaultSize,
   getKey,
   axis,
 }: UseSizeOptions): UseSize {
+  const getKeyRef: MutableRefObject<(ix: number) => string> = useRefCurrent(getKey)
   const sizeRef: MutableRefObject<{ [k in string]?: number }> = useRef({})
   const getSize = (ix: number): number => (
     sizeRef.current && sizeRef.current[getKey(ix)] || defaultSize
   )
   const setSize = (ix: number, size?: number) => {
     if (!sizeRef.current || !gridRef.current) return
-    sizeRef.current[getKey(ix)] = size
+    sizeRef.current[getKeyRef.current(ix)] = size
     gridRef.current.recomputeGridSize(axis === "x" ? { columnIndex: ix } : { rowIndex: ix })
   }
   return {
