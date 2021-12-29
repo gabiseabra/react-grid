@@ -50,10 +50,6 @@
       "error",
       "never"
     ],
-    "spaced-comment": [
-      "error",
-      "never"
-    ],
     "comma-dangle": [
       "error",
       "always-multiline"

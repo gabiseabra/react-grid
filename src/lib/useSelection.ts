@@ -3,7 +3,7 @@ import { MouseEventHandler, RefObject, useEffect, useMemo, useState } from "reac
 import * as RV from "react-virtualized"
 
 import { Endo } from "./fp"
-import { Cell, intersects, Range } from "./Range"
+import { Cell, isInside, Range } from "./Range"
 import UA from "./UserAgent"
 
 const min = (a: number, b: number) => Math.min(isNaN(a) ? Infinity : a, isNaN(b) ? Infinity : b)
@@ -13,6 +13,8 @@ const mkRange = (a: Cell, b: Cell): Range => [
   [min(a[0], b[0]), min(a[1], b[1])],
   [max(a[0], b[0]), max(a[1], b[1])],
 ]
+
+const cellCmp = (a: Cell, b: Cell): boolean => a[0] === b[0] && a[1] === b[1]
 
 const metaKey = (e: KeyboardEvent) => UA.getOS().name === "Mac OS" ? e.metaKey : e.ctrlKey
 
@@ -43,8 +45,6 @@ type UseSelection = {
   }
 }
 
-const cellCmp = (a: Cell, b: Cell): boolean => a[0] === b[0] && a[1] === b[1]
-
 export function useSelection({
   gridRef,
   selectableRange,
@@ -55,16 +55,14 @@ export function useSelection({
     pivot: [NaN, NaN] as Cell,
   })
   const selection = useMemo(() => mkRange(focus, pivot), [focus, pivot])
-  const isSelected = (cell: Cell) => intersects([cell, cell])(selection)
+  const isSelected = (cell: Cell) => isInside([cell, cell])(selection)
   const isFocused = (cell: Cell) => cellCmp(cell, focus)
+
   useEffect(() => {
-    if (!isSelecting) {
-      gridRef.current?.scrollToCell({
-        columnIndex: Math.max(0, focus[0]),
-        rowIndex: Math.max(0, focus[1]),
-      })
-    }
+    if (!isSelecting)
+      gridRef.current?.scrollToCell({ columnIndex: focus[0], rowIndex: focus[1] })
   }, [focus])
+
   useEffect(() => {
     function keyDownHandler(e: KeyboardEvent) {
       const delta = getCellDelta(e)
@@ -80,14 +78,18 @@ export function useSelection({
         pivot: e.shiftKey ? state.pivot : updateCell(state.focus),
       }))
     }
+
     window.addEventListener("keydown", keyDownHandler)
+
     return () => window.removeEventListener("keydown", keyDownHandler)
   }, [])
+
   return {
     selection,
     isSelecting,
     isFocused,
     isSelected,
+    // TODO — use a data-* property with the cell's position and memoized event handlers
     cellEvents: (cell) => ({
       onMouseDown: (e) => setState((state) => ({
         isSelecting: true,

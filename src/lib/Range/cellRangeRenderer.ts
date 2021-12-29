@@ -2,14 +2,20 @@ import React, { ReactNode } from "react"
 import * as RV from "react-virtualized"
 
 import { Endo } from "../fp"
-import { isEmpty,Range } from "./BBox"
+import { isEmpty, Range } from "./BBox"
 
 export type RangeRenderer = (nodes: ReactNode[], ctx: { bbox: Range } & RV.GridCellRangeProps) => ReactNode[]
 
 /**
- * Renders _all_ cells in a range with a function, can be used to wrap multiple cells in an html element.
+ * Renders _all_ cells in a range with a RangeRenderer function.
+ * `Endo<Range>`'s baseline is the range of visible cells in the grid's viewport,
+ * additional cells that match are included.
+ * This can be used to render additional cells as well as wrapping ranges of cells
+ * inside of an html element.
+ * 
  * Warning: Each cell is only rendered once, if a multiple ranges match a given
  * cell the first one that matches gets it, so declare smaller/more specific ranges first.
+ * 
  * Usage:
  * cellRangeRenderer = mkCellRangeRenderer(
  *   [rowRange(0), (cells) => [<div key="column-heading-cells">{cells}</cells>]],
@@ -22,7 +28,7 @@ export const mkCellRangeRenderer = (...fns: [Endo<Range>, RangeRenderer][]): RV.
 }
 
 //Adapted from https://github.com/bvaughn/react-virtualized/blob/abe0530a512639c042e74009fbf647abdb52d661/source/Grid/defaultCellRangeRenderer.js#L11
-export const multiRangeRenderer = (ranges: [Range, RangeRenderer][]): RV.GridCellRangeRenderer => (props) => {
+const multiRangeRenderer = (ranges: [Range, RangeRenderer][]): RV.GridCellRangeRenderer => (props) => {
   const {
     parent,
     cellCache,

@@ -16,10 +16,12 @@ export function useRows<R>(initialRows?: R[]): UseRows<R> {
   const [rows, setRows] = useState(initialRows || [] as R[])
   const [groups, setGroups] = useState([] as RowGroup<R>[])
   const [groupBy, setGroupBy] = useState([] as (keyof R)[])
+
   useEffect(() => {
     if (!groupBy.length) setGroups([])
     else setGroups(_groupBy(groupBy, rows))
   }, [rows, groupBy])
+
   const groupedRows: (RowGroup<R> | R)[] = useMemo(() => {
     if (!groups.length) return rows
     return groups.reduce((acc, g) => {
@@ -28,6 +30,7 @@ export function useRows<R>(initialRows?: R[]): UseRows<R> {
       return acc
     }, [] as (RowGroup<R> | R)[])
   }, [groups])
+
   return {
     rows: groupedRows,
     groupBy,

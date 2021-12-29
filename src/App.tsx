@@ -83,6 +83,7 @@ const headingRange = rowRange(0)
 
 export default function App(): JSX.Element {
   const gridRef: RefObject<RV.Grid> = useRef(null)
+
   const {
     columns,
     pinCount,
@@ -92,12 +93,15 @@ export default function App(): JSX.Element {
     pinnedRange,
     insertBefore,
   } = useColumns(initialColumns)
+
   const {
     rows,
     setGroupBy,
     setGroupExpanded,
   } = useRows(initialRows)
+
   //useEffect(() => setGroupBy(["db_boolean0"]), [])
+
   const {
     selection,
     isSelecting,
@@ -108,7 +112,9 @@ export default function App(): JSX.Element {
     gridRef,
     selectableRange: [[0, 1], [columns.length, rows.length + 1]],
   })
+
   const columnWidth = useSize({ gridRef, axis: "x", items: columns, defaultSize: 130 })
+
   const cellRenderer = useMemo(() => mkCellRenderer(
     [headingRange, ({ columnIndex: index, style, key }) => {
       const column = columns[index]
@@ -155,6 +161,7 @@ export default function App(): JSX.Element {
       }
     }]
   ), [columns, rows, pinCount, selection, isSelecting])
+
   const cellRangeRenderer = useMemo(() => mkCellRangeRenderer(
     [pipe(pinnedRange, headingRange), stickyRangeRenderer({
       key: "pinned-heading",
@@ -165,6 +172,7 @@ export default function App(): JSX.Element {
     [pinnedRange, stickyRangeRenderer({ key: "pinned", left: true })],
     [x => x, x => x]
   ), [pinCount])
+
   return (
     <DndProvider backend={HTML5Backend}>
       <RV.AutoSizer>
