@@ -1,7 +1,7 @@
 import "./styles.scss"
 
 import pipe from "lodash/fp/pipe"
-import { RefObject, useMemo, useRef } from "react"
+import { RefObject, useEffect, useMemo, useRef } from "react"
 import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import * as RV from "react-virtualized"
@@ -101,6 +101,7 @@ export default function App(): JSX.Element {
   } = useRows(initialRows)
 
   //useEffect(() => setGroupBy(["db_boolean0"]), [])
+  useEffect(() => gridRef.current?.recomputeGridSize(), [columns, rows])
 
   const {
     selection,
@@ -113,7 +114,12 @@ export default function App(): JSX.Element {
     selectableRange: [[0, 1], [columns.length, rows.length + 1]],
   })
 
-  const columnWidth = useSize({ gridRef, axis: "x", items: columns, defaultSize: 130 })
+  const columnWidth = useSize({
+    gridRef,
+    axis: "x",
+    defaultSize: 130,
+    getKey: (ix) => columns[ix].id,
+  })
 
   const cellRenderer = useMemo(() => mkCellRenderer(
     [headingRange, ({ columnIndex: index, style, key }) => {
