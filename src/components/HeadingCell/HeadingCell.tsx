@@ -1,21 +1,27 @@
+import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
+import { faArrowUp } from "@fortawesome/free-solid-svg-icons/faArrowUp"
 import { faLayerGroup } from "@fortawesome/free-solid-svg-icons/faLayerGroup"
 import { faThumbtack } from "@fortawesome/free-solid-svg-icons/faThumbtack"
 import { FontAwesomeIcon as Icon } from "@fortawesome/react-fontawesome"
 import cx from "classnames"
 import throttle from "lodash/throttle"
-import { useCallback } from "react"
+import { MouseEvent, useCallback } from "react"
 import { useDrag, useDrop } from "react-dnd"
 import { Resizable } from "react-resizable"
 
+import { Ordering } from "../../lib/hooks/useOrderBy"
+
 type HeadingCellProps = {
   column: { id: string }
-  columnIndex: number,
-  isPinned?: boolean,
-  isGrouped?: boolean,
-  size: { width: number, height: number },
+  columnIndex: number
+  isPinned?: boolean
+  isGrouped?: boolean
+  size: { width: number, height: number }
+  ordering?: [Ordering, number]
   onDrop?: (ix: number) => void
-  onChangePinned?: (pinned: boolean) => void,
-  onChangeGrouped?: (grouped: boolean) => void,
+  onChangePinned?: (pinned: boolean) => void
+  onChangeGrouped?: (grouped: boolean) => void
+  onChangeOrdering?: (ordering?: Ordering) => void
   onResize?: (size: { width: number, height: number }) => void
 }
 
@@ -27,18 +33,20 @@ export function HeadingCell({
   isPinned,
   isGrouped,
   size,
+  ordering,
   onDrop,
   onChangePinned,
   onChangeGrouped,
+  onChangeOrdering,
   onResize: $onResize,
 }: HeadingCellProps): JSX.Element {
-  const onResize = useCallback(throttle((e, { size }) => $onResize?.(size), 5), [])
   const [drag, dragRef, previewRef] = useDrag(() => ({
     type: "column", item: { columnIndex } as DnDItem,
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
   }))
+
   const [drop, dropRef] = useDrop(() => ({
     accept: "column",
     drop: ({ columnIndex: ix }: DnDItem) => onDrop && onDrop(ix),
@@ -47,6 +55,19 @@ export function HeadingCell({
       isOver: monitor.isOver({ shallow: true }),
     }),
   }))
+
+  const onResize = useCallback(throttle((e, { size }) => $onResize?.(size), 5), [])
+
+  const onClick = useCallback((e: MouseEvent) => {
+    if (!e.shiftKey) return
+    e.preventDefault()
+    onChangeOrdering?.({
+      "NONE": "ASC" as Ordering,
+      "ASC": "DESC" as Ordering,
+      "DESC": undefined,
+    }[ordering ? ordering[0] : "NONE"])
+  }, [ordering])
+
   if (drag.isDragging) {
     return <div ref={previewRef} className="HeadingCell" />
   }
@@ -59,7 +80,11 @@ export function HeadingCell({
       minConstraints={[100, size.height]}
       resizeHandles={["e"]}
     >
-      <div className={cx("HeadingCell", drop)} style={size}>
+      <div
+        className={cx("HeadingCell", drop)}
+        style={size}
+        onClick={onClick}
+      >
         <div ref={dragRef} className="dragSource">
           <div ref={dropRef} className="dropTarget" />
           <div className="toggleControls">
@@ -74,6 +99,14 @@ export function HeadingCell({
               onClick={() => onChangePinned?.(!isPinned)}
             >
               <Icon icon={faThumbtack} />
+            </button>
+            <button className={cx("ordControl", { isOrdering: Boolean(ordering) })}>
+              {ordering?.[0] === "DESC" ? (
+                <Icon icon={faArrowUp} />
+              ) : ordering?.[0] === "ASC" ? (
+                <Icon icon={faArrowDown} />
+              ) : null}
+              {ordering && <span>{ordering[1]}</span>}
             </button>
           </div>
           <span className="title">{column.id}</span>

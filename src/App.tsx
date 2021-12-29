@@ -12,6 +12,7 @@ import { TypeMap } from "./components/Types"
 import { arbitraryValue } from "./components/Types/arbitrary"
 import { ValueCell } from "./components/ValueCell"
 import { isGroup, useGroupBy } from "./lib/hooks/useGroupBy"
+import { useOrderBy } from "./lib/hooks/useOrderBy"
 import { usePins } from "./lib/hooks/usePins"
 import { useSelection } from "./lib/hooks/useSelection"
 import { useSize } from "./lib/hooks/useSize"
@@ -150,6 +151,7 @@ export default function App(): JSX.Element {
   const [columns, setColumns] = useState(initialColumns)
 
   const pins = usePins(setColumns)
+  const orderBy = useOrderBy(setRows)
   const groupBy = useGroupBy(rows)
   const selection = useSelection({
     gridRef,
@@ -175,8 +177,10 @@ export default function App(): JSX.Element {
             isPinned={pins.isPinned(index)}
             isGrouped={groupBy.groupedColumns.includes(column.id)}
             size={{ width: columnWidth.get(index), height: HEADER_HEIGHT }}
+            ordering={orderBy.getOrdering(column.id)}
             onChangePinned={(pinned) => pinned ? pins.addPin(index) : pins.removePin(index)}
             onChangeGrouped={(grouped) => grouped ? groupBy.addGroupBy(column.id) : groupBy.removeGroupBy(column.id)}
+            onChangeOrdering={(ordering) => ordering ? orderBy.addOrderBy(column.id, ordering) : orderBy.removeOrderBy(column.id)}
             onResize={({ width }) => columnWidth.set(index, width)}
             onDrop={(ix) => pins.insertBefore(ix, index)}
           />
@@ -202,7 +206,7 @@ export default function App(): JSX.Element {
         )
       }
     }]
-  ), [columns, rows, pins.pinCount, selection.selection, groupBy.groups])
+  ), [columns, pins.pinCount, selection.selection, groupBy.groupedRows, orderBy.orderedBy])
 
   const cellRangeRenderer = useMemo(() => mkCellRangeRenderer(
     [pipe(pins.pinnedRange, headingRange), stickyRangeRenderer({
