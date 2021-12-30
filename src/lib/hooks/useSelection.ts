@@ -2,22 +2,22 @@ import throttle from "lodash/throttle"
 import { MouseEventHandler, useEffect, useMemo, useState } from "react"
 
 import { Endo } from "../fp"
-import { Cell, isInside, Range } from "../Range"
+import { BBox,isContained, Point } from "../Range/BBox"
 import UA from "../UserAgent"
 
 const min = (a: number, b: number) => Math.min(isNaN(a) ? Infinity : a, isNaN(b) ? Infinity : b)
 const max = (a: number, b: number) => Math.max(isNaN(a) ? -Infinity : a, isNaN(b) ? -Infinity : b)
 
-const mkRange = (a: Cell, b: Cell): Range => [
+const mkRange = (a: Point, b: Point): BBox => [
   [min(a[0], b[0]), min(a[1], b[1])],
   [max(a[0], b[0]), max(a[1], b[1])],
 ]
 
-const cellCmp = (a: Cell, b: Cell): boolean => a[0] === b[0] && a[1] === b[1]
+const cellCmp = (a: Point, b: Point): boolean => a[0] === b[0] && a[1] === b[1]
 
 const metaKey = (e: KeyboardEvent) => UA.getOS().name === "Mac OS" ? e.metaKey : e.ctrlKey
 
-const getCellDelta = (e: KeyboardEvent): Cell | undefined => {
+const getCellDelta = (e: KeyboardEvent): Point | undefined => {
   const delta = metaKey(e) ? Infinity : 1
   switch (e.key) {
     case "ArrowUp": return [0, -delta]
@@ -28,16 +28,16 @@ const getCellDelta = (e: KeyboardEvent): Cell | undefined => {
 }
 
 type UseSelectionOptions = {
-  selectableRange: Range,
+  selectableRange: BBox,
   scrollToCell: (cell: { columnIndex: number, rowIndex: number }) => any
 }
 
 type UseSelection = {
-  selection: Range | undefined,
+  selection: BBox | undefined,
   isSelecting: boolean,
-  isSelected: (xy: Cell) => boolean,
-  isFocused: (xy: Cell) => boolean,
-  cellEvents: (xy: Cell) => {
+  isSelected: (xy: Point) => boolean,
+  isFocused: (xy: Point) => boolean,
+  cellEvents: (xy: Point) => {
     onMouseMove?: MouseEventHandler
     onMouseDown: MouseEventHandler
     onMouseUp: MouseEventHandler
@@ -50,12 +50,12 @@ export function useSelection({
 }: UseSelectionOptions): UseSelection {
   const [{ isSelecting, focus, pivot }, setState] = useState({
     isSelecting: false,
-    focus: undefined as Cell | undefined,
-    pivot: undefined as Cell | undefined,
+    focus: undefined as Point | undefined,
+    pivot: undefined as Point | undefined,
   })
   const selection = useMemo(() => focus && pivot && mkRange(focus, pivot), [focus, pivot])
-  const isSelected = (cell: Cell) => Boolean(selection && isInside([cell, cell])(selection))
-  const isFocused = (cell: Cell) => Boolean(focus && cellCmp(cell, focus))
+  const isSelected = (cell: Point) => Boolean(selection && isContained([cell, cell])(selection))
+  const isFocused = (cell: Point) => Boolean(focus && cellCmp(cell, focus))
 
   useEffect(() => {
     if (!isSelecting && focus) scrollToCell({ columnIndex: focus[0], rowIndex: focus[1] })
@@ -66,7 +66,7 @@ export function useSelection({
       const delta = getCellDelta(e)
       if (!delta) return
       e.preventDefault()
-      const updateCell: Endo<Cell> = ([x, y]) => [
+      const updateCell: Endo<Point> = ([x, y]) => [
         max(selectableRange[0][0], min(selectableRange[1][0] - 1, x + delta[0])),
         max(selectableRange[0][1], min(selectableRange[1][1] - 1, y + delta[1])),
       ]

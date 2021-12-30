@@ -18,9 +18,9 @@ import { usePins } from "./lib/hooks/usePins"
 import { useSelection } from "./lib/hooks/useSelection"
 import { useSize } from "./lib/hooks/useSize"
 import {
-  Cell,
   mkCellRangeRenderer,
   mkCellRenderer,
+  Point,
   rowRange,
   stickyRangeRenderer,
 } from "./lib/Range"
@@ -208,7 +208,7 @@ export default function App(): JSX.Element {
         )
       } else {
         const cell = Table.getCell(column.id, row)
-        const coord = Cell({ columnIndex, rowIndex })
+        const coord = Point({ columnIndex, rowIndex })
         return (
           <div key={key} style={style} {...selection.cellEvents(coord)}>
             <ValueCell cell={cell} isFocused={selection.isFocused(coord)} isSelected={selection.isSelected(coord)} />

@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useState } from "react"
 
 import { Endo, insertBefore as _insertBefore, moveToStart } from "../fp"
-import { columnRange, emptyRange, Range } from "../Range"
+import { BBox,columnRange, emptyRange } from "../Range/BBox"
 
 export type Pins = Set<number>
 
@@ -12,7 +12,7 @@ export type UsePins = {
   removePin: (ix: number) => void
   resetPins: () => void
   setPins: (ixs: number[]) => void
-  pinnedRange: Endo<Range>
+  pinnedRange: Endo<BBox>
   insertBefore: (ix: number, target: number) => void
 }
 

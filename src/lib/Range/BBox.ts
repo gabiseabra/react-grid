@@ -1,51 +1,51 @@
 import { Endo } from "../fp"
 
-export type Cell = [number, number]
+export type Point = [number, number]
 
-type CellProps = {
+type PointProps = {
   columnIndex: number,
   rowIndex: number
 }
 
-export const Cell = ({ columnIndex, rowIndex }: CellProps): Cell => [columnIndex, rowIndex]
+export const Point = ({ columnIndex, rowIndex }: PointProps): Point => [columnIndex, rowIndex]
 
-export type Range = [Cell, Cell]
+export type BBox = [Point, Point]
 
-type RangeProps = {
+type BBoxProps = {
   columnStartIndex: number,
   columnStopIndex: number,
   rowStartIndex: number,
   rowStopIndex: number
 }
 
-export const Range = ({
+export const BBox = ({
   columnStartIndex,
   columnStopIndex,
   rowStartIndex,
   rowStopIndex,
-}: RangeProps): Range => [
+}: BBoxProps): BBox => [
     [columnStartIndex, rowStartIndex],
     [columnStopIndex, rowStopIndex],
   ]
 
-export const empty: Range = [[NaN, NaN], [NaN, NaN]]
+export const empty: BBox = [[NaN, NaN], [NaN, NaN]]
 
-export const maxBound: Range = [[-Infinity, -Infinity], [Infinity, Infinity]]
+export const maxBound: BBox = [[-Infinity, -Infinity], [Infinity, Infinity]]
 
 /**
  * Matches no cells at all
  */
-export const emptyRange: Endo<Range> = () => empty
+export const emptyRange: Endo<BBox> = () => empty
 
 /**
  * Matches a cell exactly
  */
-export const cellRange = ([x, y]: Cell): Endo<Range> => () => [[x, y], [x, y]]
+export const cellRange = ([x, y]: Point): Endo<BBox> => () => [[x, y], [x, y]]
 
 /**
  * Merges a min/max range on the X axis with the baseline's Y axis
  */
-export const rowRange = (minY: number, maxY = minY): Endo<Range> => ([[minX, _minY], [maxX, _maxY]]) => [
+export const rowRange = (minY: number, maxY = minY): Endo<BBox> => ([[minX, _minY], [maxX, _maxY]]) => [
   [minX, minY],
   [maxX, maxY],
 ]
@@ -53,16 +53,16 @@ export const rowRange = (minY: number, maxY = minY): Endo<Range> => ([[minX, _mi
 /**
  * Merges a min/max range on the Y axis with the baseline's X axis
  */
-export const columnRange = (minX: number, maxX = minX): Endo<Range> => ([[_minX, minY], [_maxX, maxY]]) => [
+export const columnRange = (minX: number, maxX = minX): Endo<BBox> => ([[_minX, minY], [_maxX, maxY]]) => [
   [minX, minY],
   [maxX, maxY],
 ]
 
 /**
- * is `a` inside of `b`?
+ * is `a` contained in `b`?
  */
-export const isInside = (a: Range) => (b: Range): boolean => {
+export const isContained = (a: BBox) => (b: BBox): boolean => {
   return (b[0][0] <= a[0][0] && b[1][0] >= a[1][0] && b[0][1] <= a[0][1] && b[1][1] >= a[1][1])
 }
 
-export const isEmpty = ([[minX, minY], [maxX, maxY]]: Range) => (isNaN(minX) || isNaN(minY) || isNaN(maxX) || isNaN(maxY))
+export const isEmpty = ([[minX, minY], [maxX, maxY]]: BBox) => (isNaN(minX) || isNaN(minY) || isNaN(maxX) || isNaN(maxY))

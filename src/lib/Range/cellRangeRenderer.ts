@@ -2,13 +2,13 @@ import { ReactNode } from "react"
 import * as RV from "react-virtualized"
 
 import { Endo } from "../fp"
-import { isEmpty, Range } from "./BBox"
+import { BBox,isEmpty } from "./BBox"
 
-export type RangeRenderer = (nodes: ReactNode[], ctx: { bbox: Range } & RV.GridCellRangeProps) => ReactNode[]
+export type RangeRenderer = (nodes: ReactNode[], ctx: { bbox: BBox } & RV.GridCellRangeProps) => ReactNode[]
 
 /**
  * Renders _all_ cells in a range with a RangeRenderer function.
- * `Endo<Range>`'s baseline is the range of visible cells in the grid's viewport,
+ * `Endo<BBox>`'s baseline is the range of visible cells in the grid's viewport,
  * additional cells that match are included.
  * This can be used to render additional cells as well as wrapping ranges of cells
  * inside of an html element.
@@ -22,15 +22,15 @@ export type RangeRenderer = (nodes: ReactNode[], ctx: { bbox: Range } & RV.GridC
  *   [x => x, (cells) => [<div key="value-cells">{cells}</div>]]
  * )
  */
-export const mkCellRangeRenderer = (...fns: [Endo<Range>, RangeRenderer][]): RV.GridCellRangeRenderer => (props) => {
-  const initialRange = Range(props)
+export const mkCellRangeRenderer = (...fns: [Endo<BBox>, RangeRenderer][]): RV.GridCellRangeRenderer => (props) => {
+  const initialRange = BBox(props)
   const ranges = fns
-    .map(([fn, g]) => [fn(initialRange), g] as [Range, RangeRenderer])
+    .map(([fn, g]) => [fn(initialRange), g] as [BBox, RangeRenderer])
     .filter(([r]) => !isEmpty(r))
   return multiRangeRenderer(ranges)(props)
 }
 
-const multiRangeRenderer = (ranges: [Range, RangeRenderer][]): RV.GridCellRangeRenderer => ({
+const multiRangeRenderer = (ranges: [BBox, RangeRenderer][]): RV.GridCellRangeRenderer => ({
   cellRenderer,
   ...props
 }) => {

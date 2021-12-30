@@ -2,13 +2,13 @@ import { ReactNode } from "react"
 import * as RV from "react-virtualized"
 
 import { Endo } from "../fp"
-import { Cell, isInside, maxBound, Range } from "./BBox"
+import { BBox,isContained, maxBound, Point } from "./BBox"
 
 export type CellRenderer = (props: RV.GridCellProps) => ReactNode
 
 /**
  * Renders _each_ cell in a range with a GridCellRenderer function.
- * `Endo<Range>`'s baseline is the range of all possible cells (maxBound).
+ * `Endo<BBox>`'s baseline is the range of all possible cells (maxBound).
  * This is used to define how individual cells are rendered inside of a range.
  * 
  * Warning: Each cell is only rendered once, if a multiple ranges match a given
@@ -20,11 +20,11 @@ export type CellRenderer = (props: RV.GridCellProps) => ReactNode
  *   [x => x, ({ key, style, columnIndex, rowIndex }) => <div key={key} style={style}>{rowIndex}x{columnIndex}</div>]
  * )
  */
-export const mkCellRenderer = (...$ranges: [Endo<Range>, CellRenderer][]): RV.GridCellRenderer => {
-  const ranges: [Range, CellRenderer][] = $ranges.map(([fn, g]) => [fn(maxBound), g])
+export const mkCellRenderer = (...$ranges: [Endo<BBox>, CellRenderer][]): RV.GridCellRenderer => {
+  const ranges: [BBox, CellRenderer][] = $ranges.map(([fn, g]) => [fn(maxBound), g])
   return (props) => {
-    const cell = Cell(props)
-    const match = ranges.find(([range]) => isInside([cell, cell])(range))
+    const cell = Point(props)
+    const match = ranges.find(([range]) => isContained([cell, cell])(range))
     if (match) return match[1](props)
     return null
   }
