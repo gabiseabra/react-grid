@@ -11,6 +11,7 @@ import { HeadingCell } from "./components/HeadingCell"
 import { compare, TypeMap } from "./components/Types"
 import { arbitraryValue } from "./components/Types/arbitrary"
 import { ValueCell } from "./components/ValueCell"
+import { adjustScrollToCell } from "./lib/Range/adjustScrollToCell"
 import { isGroup, useGroupBy } from "./lib/hooks/useGroupBy"
 import { useOrderBy } from "./lib/hooks/useOrderBy"
 import { usePins } from "./lib/hooks/usePins"
@@ -138,6 +139,7 @@ const mkRow = (i: number): Row => initialColumns.reduce((acc, { id, type }) => (
 const initialColumns: Col[] = (Object.keys(Table.Columns) as T.ColumnTagsOf<typeof Table>[]).map((id) => Table.getCol(id))
 
 // Very large but not random (takes too long to generate 1M rows)
+// Uncomment to test the grid with offset adjustment
 // const initialRows: Row[] = Array(1000000).fill(mkRow(0))
 // Smaller and random
 const initialRows: Row[] = Array(10000).fill(null).map(() => mkRow(0))
@@ -159,8 +161,11 @@ export default function App(): JSX.Element {
   } as Tuple<TypeMap>))
   const groupBy = useGroupBy(rows)
   const selection = useSelection({
-    gridRef,
     selectableRange: [[0, 1], [columns.length, rows.length + 1]],
+    scrollToCell: adjustScrollToCell({
+      gridRef,
+      offset: { columnIndex: pins.pinCount, rowIndex: 1 },
+    }),
   })
   const columnWidth = useSize({
     gridRef,

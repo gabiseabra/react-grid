@@ -1,6 +1,5 @@
 import throttle from "lodash/throttle"
-import { MouseEventHandler, RefObject, useEffect, useMemo, useState } from "react"
-import * as RV from "react-virtualized"
+import { MouseEventHandler, useEffect, useMemo, useState } from "react"
 
 import { Endo } from "../fp"
 import { Cell, isInside, Range } from "../Range"
@@ -29,12 +28,12 @@ const getCellDelta = (e: KeyboardEvent): Cell | undefined => {
 }
 
 type UseSelectionOptions = {
-  gridRef: RefObject<RV.Grid>,
   selectableRange: Range,
+  scrollToCell: (cell: { columnIndex: number, rowIndex: number }) => any
 }
 
 type UseSelection = {
-  selection: Range,
+  selection: Range | undefined,
   isSelecting: boolean,
   isSelected: (xy: Cell) => boolean,
   isFocused: (xy: Cell) => boolean,
@@ -46,21 +45,20 @@ type UseSelection = {
 }
 
 export function useSelection({
-  gridRef,
   selectableRange,
+  scrollToCell,
 }: UseSelectionOptions): UseSelection {
   const [{ isSelecting, focus, pivot }, setState] = useState({
     isSelecting: false,
-    focus: [NaN, NaN] as Cell,
-    pivot: [NaN, NaN] as Cell,
+    focus: undefined as Cell | undefined,
+    pivot: undefined as Cell | undefined,
   })
-  const selection = useMemo(() => mkRange(focus, pivot), [focus, pivot])
-  const isSelected = (cell: Cell) => isInside([cell, cell])(selection)
-  const isFocused = (cell: Cell) => cellCmp(cell, focus)
+  const selection = useMemo(() => focus && pivot && mkRange(focus, pivot), [focus, pivot])
+  const isSelected = (cell: Cell) => Boolean(selection && isInside([cell, cell])(selection))
+  const isFocused = (cell: Cell) => Boolean(focus && cellCmp(cell, focus))
 
   useEffect(() => {
-    if (!isSelecting)
-      gridRef.current?.scrollToCell({ columnIndex: focus[0], rowIndex: focus[1] })
+    if (!isSelecting && focus) scrollToCell({ columnIndex: focus[0], rowIndex: focus[1] })
   }, [focus])
 
   useEffect(() => {
@@ -74,8 +72,8 @@ export function useSelection({
       ]
       setState((state) => ({
         ...state,
-        focus: updateCell(state.focus),
-        pivot: e.shiftKey ? state.pivot : updateCell(state.focus),
+        focus: !state.focus ? undefined : updateCell(state.focus),
+        pivot: !state.focus || e.shiftKey ? state.pivot : updateCell(state.focus),
       }))
     }
 
@@ -98,7 +96,7 @@ export function useSelection({
       })),
       onMouseUp: () => setState((state) => ({ ...state, isSelecting: false })),
       onMouseMove: throttle(() => {
-        if (isSelecting && !cellCmp(cell, pivot)) setState((state) => ({ ...state, pivot: cell }))
+        if (isSelecting && !(pivot && cellCmp(cell, pivot))) setState((state) => ({ ...state, pivot: cell }))
       }, 30),
     }),
   }
