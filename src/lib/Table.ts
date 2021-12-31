@@ -10,7 +10,7 @@ type TypeOf<P extends TProxy<any>> = P["__Type"]
 
 type TMap = Record<string, any>
 
-type CTMap<T extends TMap> = Record<string, keyof T>
+type CTMap<T extends TMap> = Record<string, { type: keyof T }>
 
 /**
  * This class provides type inference and querying methods for handling tabular data.
@@ -26,14 +26,12 @@ export class Table<T, C extends CTMap<T>> {
   ) { }
 
   getCol<K extends ColumnTagsOf<this>>(id: K): TaggedColOf<this>[K] {
-    return { id, type: this.Columns[id] }
+    return { ...this.Columns[id], id }
   }
 
   getCell<K extends ColumnTagsOf<this>>(id: K, row: RowOf<this>): TaggedCellOf<this>[TypeTagAt<this, K>]
   getCell(id: ColumnTagsOf<this>, row: RowOf<this>): CellOf<this> {
-    const value = row[id]
-    const type = this.Columns[id]
-    return { type, value }
+    return { type: this.Columns[id].type, value: row[id] }
   }
 }
 
@@ -42,7 +40,7 @@ export type RowOf<T extends Table<any, any>> = {
 }
 
 export type TaggedColOf<T extends Table<any, any>> = {
-  [k in ColumnTagsOf<T>]: { id: k, type: TypeTagAt<T, k> }
+  [k in ColumnTagsOf<T>]: { id: k } & T["Columns"][k]
 }
 
 export type ColOf<T extends Table<any, any>> = TaggedColOf<T>[ColumnTagsOf<T>]
@@ -55,7 +53,7 @@ export type CellOf<T extends Table<any, any>> = TaggedCellOf<T>[TypeTagsOf<T>]
 
 export type TypeMapOf<T extends Table<any, any>> = TypeOf<T["__TProxy"]>
 
-export type TypeTagAt<T extends Table<any, any>, K extends keyof T["Columns"]> = T["Columns"][K]
+export type TypeTagAt<T extends Table<any, any>, K extends keyof T["Columns"]> = T["Columns"][K]["type"]
 export type TypeAt<T extends Table<any, any>, K extends keyof T["Columns"]> = TypeMapOf<T>[TypeTagAt<T, K>]
 
 export type TypeTagsOf<T extends Table<any, any>> = keyof TypeOf<T["__TProxy"]>

@@ -1,7 +1,5 @@
 import { Big } from "big.js"
 
-import { Agg, Cmp } from "../../lib/TypeOps"
-
 export type TypeMap = {
   string: string | null,
   number: number | null,
@@ -9,6 +7,12 @@ export type TypeMap = {
   boolean: boolean | null,
   date: Date | null
 }
+
+type MapList<T> = { [k in keyof T]: T[k][] }
+
+export type Value<T> = { [k in keyof T]: { type: k, value: T[k] } }[keyof T]
+
+export type Agg<T> = (agg: Value<MapList<T>>) => Value<T>
 
 export const aggregate: Agg<TypeMap> = (agg) => {
   switch (agg.type) {
@@ -39,6 +43,10 @@ export const aggregate: Agg<TypeMap> = (agg) => {
     case "date": return { type: "date", value: null }
   }
 }
+
+export type Tuple<T> = { [k in keyof T]: { type: k, a: T[k], b: T[k] } }[keyof T]
+
+export type Cmp<T> = (agg: Tuple<T>) => number
 
 export const compare: Cmp<TypeMap> = (ty) => {
   if (ty.a === ty.b) return 0

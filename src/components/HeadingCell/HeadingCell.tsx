@@ -54,7 +54,7 @@ function HeadingToggleControls({
 }
 
 type HeadingCellProps = {
-  column: { id: string }
+  column: { id: string, label: string }
   columnIndex: number
   size: { width: number, height: number }
   onDrop?: (ix: number) => void
@@ -124,7 +124,7 @@ export function HeadingCell({
           <div ref={dropRef} className="dropTarget" />
           <HeadingToggleControls ordering={ordering} {...props} />
           <div className="title">
-            {column.id}
+            {column.label}
           </div>
         </div>
       </div>

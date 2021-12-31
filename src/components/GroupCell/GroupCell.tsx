@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 
+import { aggregate, TypeMap } from "../../lib/Schema"
 import { ColOf, RowOf, Table } from "../../lib/Table"
-import { aggregate, TypeMap } from "../Types"
 import { ValueCell } from "../ValueCell"
 
 export type GroupCellProps = {

@@ -1,11 +1,11 @@
 import cx from "classnames"
 
-import { BoolValue } from "./Boolean/Value"
-import { DateValue } from "./Date/Value"
-import { NumberValue } from "./Number/Value"
-import { PercentValue } from "./Percent/Value"
-import { StringValue } from "./String/Value"
-import { TypeMap } from "./TypeMap"
+import { TypeMap } from "../../lib/Schema"
+import { BoolValue } from "./Bool"
+import { DateValue } from "./Date"
+import { NumberValue } from "./Number"
+import { PercentValue } from "./Percent"
+import { StringValue } from "./String"
 
 export type ValueProps = {
   cell: {
@@ -20,7 +20,6 @@ export type ValueProps = {
 }
 
 export function Value({ cell, ...props }: ValueProps): JSX.Element {
-  props.className = cx("Types-Value", props.className)
   switch (cell.type) {
     case "boolean":
       return <BoolValue value={cell.value} onChange={cell.onChange} {...props} />
