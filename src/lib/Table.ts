@@ -33,6 +33,7 @@ export class Table<T, C extends CTMap<T>> {
   getCell(id: ColumnTagsOf<this>, row: RowOf<this>): CellOf<this> {
     return { type: this.Columns[id].type, value: row[id] }
   }
+
 }
 
 export type RowOf<T extends Table<any, any>> = {
@@ -53,7 +54,10 @@ export type CellOf<T extends Table<any, any>> = TaggedCellOf<T>[TypeTagsOf<T>]
 
 export type TypeMapOf<T extends Table<any, any>> = TypeOf<T["__TProxy"]>
 
-export type TypeTagAt<T extends Table<any, any>, K extends keyof T["Columns"]> = T["Columns"][K]["type"]
+export type TypeTagAt<T extends Table<any, any>, K extends keyof T["Columns"]>
+  = T["Columns"][K]["type"] extends TypeTagsOf<T>
+  ? T["Columns"][K]["type"]
+  : never
 export type TypeAt<T extends Table<any, any>, K extends keyof T["Columns"]> = TypeMapOf<T>[TypeTagAt<T, K>]
 
 export type TypeTagsOf<T extends Table<any, any>> = keyof TypeOf<T["__TProxy"]>

@@ -5,7 +5,7 @@ export type TypeMap = {
   number: number | null,
   percent: Big | null,
   boolean: boolean | null,
-  date: Date | null
+  date: Date | null,
 }
 
 type MapList<T> = { [k in keyof T]: T[k][] }
@@ -57,7 +57,11 @@ export const compare: Cmp<TypeMap> = (ty) => {
       return ty.a.localeCompare(ty.b)
     case "percent":
       return ty.a.cmp(ty.b)
-    default:
-      return ty.a > ty.b ? 1 : -1
+    case "boolean":
+    case "number":
+    case "date":
+      if (ty.a > ty.b) return 1
+      if (ty.a < ty.b) return -1
+      return 0
   }
 }

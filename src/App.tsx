@@ -6,10 +6,13 @@ import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import * as RV from "react-virtualized"
 
+import * as CM from "./components/ContextMenu"
+import { Filter } from "./components/Filter"
 import { GroupCell } from "./components/GroupCell"
 import { HeadingCell } from "./components/HeadingCell"
 import { ValueCell } from "./components/ValueCell"
 import { adjustScrollToCell } from "./lib/adjustScrollToCell"
+import { useApplyFilter, useFilters } from "./lib/hooks/useFilter"
 import { isGroup, useGroupBy } from "./lib/hooks/useGroupBy"
 import { useOrderBy } from "./lib/hooks/useOrderBy"
 import { usePins } from "./lib/hooks/usePins"
@@ -22,7 +25,7 @@ import {
   rowRange,
   stickyRangeRenderer,
 } from "./lib/Range"
-import { Columns,compare, Row, Schema, Tuple, TypeMap } from "./lib/Schema"
+import { applyFilter,Columns,compare, Row, Schema, TaggedFilters, Tuple, TypeMap } from "./lib/Schema"
 
 // Very large but not random (takes too long to generate 1M rows)
 // Uncomment to test the grid with offset adjustment
@@ -39,15 +42,17 @@ export default function App(): JSX.Element {
   const [rows, setRows] = useState(initialRows)
   const [columns, setColumns] = useState(Columns)
 
+  const filters = useFilters<typeof Schema, TaggedFilters>()
+  const filteredRows = useApplyFilter<typeof Schema, TaggedFilters>(rows, filters.filters, applyFilter)
   const pins = usePins(setColumns)
   const orderBy = useOrderBy(setRows, (id, a, b) => compare({
     type: Schema.getCol(id).type,
     a: a[id],
     b: b[id],
   } as Tuple<TypeMap>))
-  const groupBy = useGroupBy(rows)
+  const groupBy = useGroupBy(filteredRows)
   const selection = useSelection({
-    selectableRange: [[0, 1], [columns.length, rows.length + 1]],
+    selectableRange: [[0, 1], [columns.length, groupBy.groupedRows.length + 1]],
     scrollToCell: adjustScrollToCell({
       gridRef,
       offset: { columnIndex: pins.pinCount, rowIndex: 1 },
@@ -67,19 +72,31 @@ export default function App(): JSX.Element {
       const column = columns[index]
       return (
         <div key={key} style={style}>
-          <HeadingCell
-            column={column}
-            columnIndex={index}
-            isPinned={pins.isPinned(index)}
-            isGrouped={groupBy.groupedColumns.includes(column.id)}
-            size={{ width: columnWidth.get(index), height: HEADER_HEIGHT }}
-            ordering={orderBy.getOrdering(column.id)}
-            onChangePinned={(pinned) => pinned ? pins.addPin(index) : pins.removePin(index)}
-            onChangeGrouped={(grouped) => grouped ? groupBy.addGroupBy(column.id) : groupBy.removeGroupBy(column.id)}
-            onChangeOrdering={(ordering) => ordering ? orderBy.addOrderBy(column.id, ordering) : orderBy.removeOrderBy(column.id)}
-            onResize={({ width }) => columnWidth.set(index, width)}
-            onDrop={(ix) => pins.insertBefore(ix, index)}
-          />
+          <CM.Context
+            renderMenu={(ref, style) => (
+              <CM.Menu ref={ref} style={style}>
+                <Filter
+                  column={column}
+                  rows={rows}
+                  filters={filters}
+                />
+              </CM.Menu>
+            )}
+          >
+            <HeadingCell
+              column={column}
+              columnIndex={index}
+              isPinned={pins.isPinned(index)}
+              isGrouped={groupBy.groupedColumns.includes(column.id)}
+              size={{ width: columnWidth.get(index), height: HEADER_HEIGHT }}
+              ordering={orderBy.getOrdering(column.id)}
+              onChangePinned={(pinned) => pinned ? pins.addPin(index) : pins.removePin(index)}
+              onChangeGrouped={(grouped) => grouped ? groupBy.addGroupBy(column.id) : groupBy.removeGroupBy(column.id)}
+              onChangeOrdering={(ordering) => ordering ? orderBy.addOrderBy(column.id, ordering) : orderBy.removeOrderBy(column.id)}
+              onResize={({ width }) => columnWidth.set(index, width)}
+              onDrop={(ix) => pins.insertBefore(ix, index)}
+            />
+          </CM.Context>
         </div>
       )
     }],
