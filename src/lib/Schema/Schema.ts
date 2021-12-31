@@ -2,7 +2,6 @@ import * as T from "../Table"
 import { arbitraryValue } from "./arbitrary"
 import { TypeMap } from "./TypeMap"
 
-
 export const Schema = new T.Table(new T.TProxy<TypeMap>(), {
   string0: { type: "string", label: "db_string0" },
   string1: { type: "string", label: "db_string1" },

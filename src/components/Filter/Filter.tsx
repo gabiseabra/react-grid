@@ -37,7 +37,7 @@ export function Filter({ column, rows, filters: { filters, setFilter } }: Filter
       return (
         <PossibleValues<Row, typeof column.id> id={column.id} rows={rows}>
           {({possibleValues}) => (
-            <StringFilter filter={filters[column.id]} onChange={setFilter(column.id)} possibleValues={possibleValues} />
+            <StringFilter id={column.id} filter={filters[column.id]} onChange={setFilter(column.id)} possibleValues={possibleValues} />
           )}
         </PossibleValues>
       )

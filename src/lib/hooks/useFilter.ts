@@ -38,7 +38,7 @@ export function useApplyFilter<T extends Table<any, any>, F extends Record<TypeT
     const ids: ColumnTagsOf<T>[] = Object.keys(filters)
     return rows.filter((row) => ids.reduce<boolean>((acc, id) => {
       const filter = filters[id]
-      if (!acc || !filter) return false
+      if (!acc || !filter) return acc
       return applyFilter(id)(filter!)(row[id])
     }, true))
   }, [rows, filters])

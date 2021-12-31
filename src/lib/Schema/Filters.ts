@@ -31,7 +31,7 @@ const filterCmp = <T>(filter: ComparisonFilter<T>, cmp: (a: T | null, b: T | nul
 
 export const TaggedFilterFns = {
   boolean: (filter: { value?: boolean }) => (a: boolean | null) => typeof filter.value === "undefined" || a === filter.value,
-  string: (filter: { values: string[] }) => (a: string | null) => a !== null && filter.values.includes(a),
+  string: (filter: { values: (string | null)[] }) => (a: string | null) => a !== null && filter.values.includes(a),
   number: (filter: ComparisonFilter<number>) => filterCmp(filter, (a, b) => compare({ type: "number", a, b })),
   percent: (filter: ComparisonFilter<Big>) => filterCmp(filter, (a, b) => compare({ type: "percent", a, b })),
   date: (filter: ComparisonFilter<Date>) => filterCmp(filter, (a, b) => compare({ type: "date", a, b })),
