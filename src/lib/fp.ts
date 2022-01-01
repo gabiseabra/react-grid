@@ -1,5 +1,7 @@
 export type Endo<T> = (x: T) => T
 
+export type Get<A, B> = (x: A) => B
+
 export const id = <T>(x: T): T => x
 
 export const filter = <T>(fn: (x: T) => boolean) => (as: T[]): T[] => as.filter(fn)

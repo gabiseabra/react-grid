@@ -1,6 +1,6 @@
 import { Big } from "big.js"
 
-import { ColumnTagsOf, TypeAt, TypeTagAt } from "../Table"
+import { ColumnTagsOf, TypeTagAt } from "../Table"
 import { Schema } from "./Schema"
 import { compare,TypeMap } from "./TypeMap"
 
