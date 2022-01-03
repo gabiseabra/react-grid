@@ -72,6 +72,7 @@ export default function App(): JSX.Element {
   })
 
   useEffect(() => gridRef.current?.recomputeGridSize(), [columns])
+  useEffect(() => selection.clearSelection(), [columns, res.result])
 
   const cellRenderer = useMemo(() => mkCellRenderer(
     [headingRange, ({ columnIndex: index, style }) => {
