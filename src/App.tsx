@@ -29,6 +29,8 @@ import { Col, Filters, Row,Schema } from "./lib/Schema"
 import { mkRow } from "./lib/Schema/arbitrary"
 import * as Query from "./lib/Schema/Query"
 
+const TODO = () => console.log("TODO")
+
 // Very large but not random (takes too long to generate 1M rows)
 // Uncomment to test the grid with offset adjustment
 // const initialRows: Row[] = Array(1000000).fill(mkRow(0))
@@ -82,7 +84,8 @@ export default function App(): JSX.Element {
           <CM.Context
             renderMenu={(ref, style) => (
               <CM.Menu ref={ref} style={style}>
-                <CM.Button>Lmao</CM.Button>
+                <CM.Button onClick={TODO}>Duplicate</CM.Button>
+                <CM.Button onClick={TODO}>Delete</CM.Button>
                 <CM.SubMenu id="filters" label="Filters">
                   <Filter
                     column={column}
@@ -90,9 +93,9 @@ export default function App(): JSX.Element {
                     filters={query.filters}
                     setFilters={setFilters} />
                 </CM.SubMenu>
-                <CM.SubMenu id="test" label="Lmao">
-                  <CM.Button>testetst</CM.Button>
-                  <CM.SubMenu id="aaa" label="aaaa">laaajkefshkaehgr</CM.SubMenu>
+                <CM.SubMenu id="test" label="Testing">
+                  <CM.Button onClick={() => console.log("lmao")}>Eyy</CM.Button>
+                  <CM.SubMenu id="eyy" label="Eyy">lmao</CM.SubMenu>
                 </CM.SubMenu>
               </CM.Menu>
             )}
