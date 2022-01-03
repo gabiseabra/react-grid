@@ -34,6 +34,7 @@ export function usePins(setColumns: (fn: (as: any[]) => any[]) => any): UsePins 
   }
   const insertBefore = (target: number) => (ix: number) => {
     if (isPinned(target)) setCount((x) => x + 1)
+    else if(isPinned(ix)) setCount((x => x - 1))
     setColumns($insertBefore(target)(ix))
   }
   const pinnedRange =

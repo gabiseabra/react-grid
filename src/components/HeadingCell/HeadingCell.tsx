@@ -89,9 +89,11 @@ export function HeadingCell({
       isDragging: Boolean(monitor.getItem()),
       isOver: monitor.isOver({ shallow: true }),
     }),
-  }), [columnIndex])
+  }), [onDrop])
 
-  const onResize = useCallback(throttle((e, { size }) => onChangeWidth?.(size.width), 5), [])
+  const onResize = useCallback(throttle((_e, { size }) =>
+    onChangeWidth?.(size.width), 5
+  ), [onChangeWidth])
 
   const onClick = useCallback((e: MouseEvent) => {
     if (!e.shiftKey) return
@@ -106,7 +108,7 @@ export function HeadingCell({
       order,
       priority: typeof sorting === "undefined" ? Infinity : sorting.priority,
     })
-  }, [sorting])
+  }, [sorting, onChangeSort])
 
   if (drag.isDragging) {
     return <div ref={previewRef} className="HeadingCell" />
