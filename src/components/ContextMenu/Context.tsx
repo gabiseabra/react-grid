@@ -1,5 +1,4 @@
-import cx from "classnames"
-import { ForwardedRef, forwardRef, MouseEventHandler, ReactNode, Ref, RefObject, useCallback, useEffect, useRef, useState } from "react"
+import { MouseEventHandler, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from "react"
 
 type ContextProps = {
   renderMenu: (ref: RefObject<HTMLDivElement>, position: Pos) => ReactNode
@@ -41,10 +40,3 @@ export function Context({renderMenu, children}: ContextProps) {
     </div>
   )
 }
-
-export const Menu = forwardRef((
-    {className, ...props}: JSX.IntrinsicElements["div"],
-    ref: ForwardedRef<HTMLDivElement>
-  ): JSX.Element => (
-  <div ref={ref} className={cx("ContextMenu-Menu", className)} {...props} />
-))

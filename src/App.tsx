@@ -81,11 +81,18 @@ export default function App(): JSX.Element {
           <CM.Context
             renderMenu={(ref, style) => (
               <CM.Menu ref={ref} style={style}>
-                <Filter
-                  column={column}
-                  rows={initialRows}
-                  filters={query.filters}
-                  setFilters={setFilters} />
+                <CM.Button>Lmao</CM.Button>
+                <CM.SubMenu id="filters" label="Filters">
+                  <Filter
+                    column={column}
+                    rows={initialRows}
+                    filters={query.filters}
+                    setFilters={setFilters} />
+                </CM.SubMenu>
+                <CM.SubMenu id="test" label="Lmao">
+                  <CM.Button>testetst</CM.Button>
+                  <CM.SubMenu id="aaa" label="aaaa">laaajkefshkaehgr</CM.SubMenu>
+                </CM.SubMenu>
               </CM.Menu>
             )}
           >
