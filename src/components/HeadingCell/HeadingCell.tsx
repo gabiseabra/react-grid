@@ -75,20 +75,21 @@ export function HeadingCell({
   ...props
 }: HeadingCellProps): JSX.Element {
   const [drag, dragRef, previewRef] = useDrag(() => ({
-    type: "column", item: { columnIndex } as DnDItem,
+    type: "column",
+    item: { columnIndex } as DnDItem,
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-  }))
+  }), [columnIndex])
 
   const [drop, dropRef] = useDrop(() => ({
     accept: "column",
-    drop: ({ columnIndex: ix }: DnDItem) => onDrop && onDrop(ix),
+    drop: ({ columnIndex: ix }: DnDItem) => onDrop?.(ix),
     collect: (monitor) => ({
       isDragging: Boolean(monitor.getItem()),
       isOver: monitor.isOver({ shallow: true }),
     }),
-  }))
+  }), [columnIndex])
 
   const onResize = useCallback(throttle((e, { size }) => onChangeWidth?.(size.width), 5), [])
 

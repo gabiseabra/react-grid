@@ -1,7 +1,7 @@
 import "./styles.scss"
 
 import pipe from "lodash/fp/pipe"
-import { RefObject, useCallback, useMemo, useRef, useState } from "react"
+import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import * as RV from "react-virtualized"
@@ -12,7 +12,7 @@ import { GroupCell } from "./components/GroupCell"
 import { HeadingCell } from "./components/HeadingCell"
 import { ValueCell } from "./components/ValueCell"
 import { adjustScrollToCell } from "./lib/adjustScrollToCell"
-import { insertBefore, overMap } from "./lib/fp"
+import { overMap } from "./lib/fp"
 import { isGroup } from "./lib/Group"
 import { usePins } from "./lib/hooks/usePins"
 import { useQuery } from "./lib/hooks/useQuery"
@@ -71,6 +71,8 @@ export default function App(): JSX.Element {
     }),
   })
 
+  useEffect(() => gridRef.current?.recomputeGridSize(), [columns])
+
   const cellRenderer = useMemo(() => mkCellRenderer(
     [headingRange, ({ columnIndex: index, style }) => {
       const [key, column] = columnEntry(index)
@@ -98,12 +100,7 @@ export default function App(): JSX.Element {
               onChangeSort={pipe(Query.sorting(column.id).set, setQuery)}
               onChangePinned={pins.setPinned(index)}
               onChangeWidth={columnWidth.set(key)}
-              onDrop={pipe(
-                insertBefore(index),
-                overMap,
-                setColumns,
-                () => gridRef.current?.recomputeGridSize()
-              )}
+              onDrop={pins.insertBefore(index)}
             />
           </CM.Context>
         </div>

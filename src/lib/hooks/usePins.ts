@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-import { Endo, insertBefore } from "../fp"
+import { Endo, insertBefore as $insertBefore } from "../fp"
 import { BBox,columnRange, emptyRange } from "../Range/BBox"
 
 export type Pins = Set<number>
@@ -9,6 +9,7 @@ export type UsePins = {
   pinCount: number
   isPinned: (ix: number) => boolean
   setPinned: (ix: number) => (isPinned: boolean) => void
+  insertBefore: (target: number) => (ix: number) => void
   pinnedRange: Endo<BBox>
 }
 
@@ -19,17 +20,21 @@ export function usePins(setColumns: (fn: (as: any[]) => any[]) => any): UsePins 
   const isPinned = (ix: number) => ix < pinCount
   const addPin = (ix: number) => {
     if (isPinned(ix)) return
-    setColumns(insertBefore(pinCount)(ix))
+    setColumns($insertBefore(pinCount)(ix))
     setCount((x) => x + 1)
   }
   const removePin = (ix: number) => {
     if (!isPinned(ix)) return
-    setColumns(insertBefore(pinCount)(ix))
+    setColumns($insertBefore(pinCount)(ix))
     setCount((x) => x - 1)
   }
   const setPinned = (ix: number) => (isPinned: boolean) => {
     if (isPinned) addPin(ix)
     else removePin(ix)
+  }
+  const insertBefore = (target: number) => (ix: number) => {
+    if (isPinned(target)) setCount((x) => x + 1)
+    setColumns($insertBefore(target)(ix))
   }
   const pinnedRange =
     pinCount === 0
@@ -42,6 +47,7 @@ export function usePins(setColumns: (fn: (as: any[]) => any[]) => any): UsePins 
     pinCount,
     isPinned,
     setPinned,
+    insertBefore,
     pinnedRange,
   }
 }
