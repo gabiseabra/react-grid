@@ -37,6 +37,7 @@ type UseSelection = {
   isSelecting: boolean,
   isSelected: (xy: Point) => boolean,
   isFocused: (xy: Point) => boolean,
+  clearSelection: () => void,
   cellEvents: (xy: Point) => {
     onMouseMove?: MouseEventHandler
     onMouseDown: MouseEventHandler
@@ -44,19 +45,21 @@ type UseSelection = {
   }
 }
 
+const emptyState = {
+  isSelecting: false,
+  focus: undefined as Point | undefined,
+  pivot: undefined as Point | undefined,
+}
+
 export function useSelection({
   selectableRange,
   scrollToCell,
 }: UseSelectionOptions): UseSelection {
-  const [{ isSelecting, focus, pivot }, setState] = useState({
-    isSelecting: false,
-    focus: undefined as Point | undefined,
-    pivot: undefined as Point | undefined,
-  })
+  const [{ isSelecting, focus, pivot }, setState] = useState(emptyState)
   const selection = useMemo(() => focus && pivot && mkRange(focus, pivot), [focus, pivot])
   const isSelected = (cell: Point) => Boolean(selection && isContained([cell, cell])(selection))
   const isFocused = (cell: Point) => Boolean(focus && cellCmp(cell, focus))
-
+  const clearSelection = () => setState(emptyState)
   useEffect(() => {
     if (!isSelecting && focus) scrollToCell({ columnIndex: focus[0], rowIndex: focus[1] })
   }, [focus])
@@ -87,6 +90,7 @@ export function useSelection({
     isSelecting,
     isFocused,
     isSelected,
+    clearSelection,
     // TODO — use a data-* property with the cell's position and memoized event handlers
     cellEvents: (cell) => ({
       onMouseDown: (e) => setState((state) => ({

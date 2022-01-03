@@ -9,10 +9,10 @@ import { MouseEvent, useCallback } from "react"
 import { useDrag, useDrop } from "react-dnd"
 import { Resizable } from "react-resizable"
 
-import { Ordering } from "../../lib/hooks/useOrderBy"
+import { Order, Sorting } from "../../lib/Schema"
 
 type HeadingToggleControlsProps = {
-  ordering?: [Ordering, number]
+  sorting?: Sorting
   isPinned?: boolean
   isGrouped?: boolean
   onChangePinned?: (pinned: boolean) => void
@@ -20,7 +20,7 @@ type HeadingToggleControlsProps = {
 }
 
 function HeadingToggleControls({
-  ordering,
+  sorting,
   isGrouped,
   isPinned,
   onChangeGrouped,
@@ -29,13 +29,13 @@ function HeadingToggleControls({
   return (
     <div className="toggleControls">
       <div className="space" />
-      <button className={cx("ordControl", { disabled: !ordering })}>
-        {ordering?.[0] === "DESC" ? (
+      <button className={cx("ordControl", { disabled: !sorting })}>
+        {sorting?.order === "DESC" ? (
           <Icon icon={faArrowUp} />
-        ) : ordering?.[0] === "ASC" ? (
+        ) : sorting?.order === "ASC" ? (
           <Icon icon={faArrowDown} />
         ) : null}
-        {ordering && <span>{ordering[1] + 1}</span>}
+        {sorting && <span>{sorting.priority + 1}</span>}
       </button>
       <button
         className={cx("groupControl", { disabled: !isGrouped })}
@@ -54,53 +54,59 @@ function HeadingToggleControls({
 }
 
 type HeadingCellProps = {
-  column: { id: string }
+  label: string
   columnIndex: number
   size: { width: number, height: number }
   onDrop?: (ix: number) => void
-  onResize?: (size: { width: number, height: number }) => void
-  onChangeOrdering?: (ord?: Ordering) => void
+  onChangeWidth?: (width: number) => void
+  onChangeSort?: (ord?: Sorting) => void
 } & HeadingToggleControlsProps
 
 type DnDItem = { columnIndex: number }
 
 export function HeadingCell({
-  column,
+  label,
   columnIndex,
   size,
-  ordering,
+  sorting,
   onDrop,
-  onChangeOrdering,
-  onResize: $onResize,
+  onChangeSort,
+  onChangeWidth,
   ...props
 }: HeadingCellProps): JSX.Element {
   const [drag, dragRef, previewRef] = useDrag(() => ({
-    type: "column", item: { columnIndex } as DnDItem,
+    type: "column",
+    item: { columnIndex } as DnDItem,
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-  }))
+  }), [columnIndex])
 
   const [drop, dropRef] = useDrop(() => ({
     accept: "column",
-    drop: ({ columnIndex: ix }: DnDItem) => onDrop && onDrop(ix),
+    drop: ({ columnIndex: ix }: DnDItem) => onDrop?.(ix),
     collect: (monitor) => ({
       isDragging: Boolean(monitor.getItem()),
       isOver: monitor.isOver({ shallow: true }),
     }),
-  }))
+  }), [columnIndex])
 
-  const onResize = useCallback(throttle((e, { size }) => $onResize?.(size), 5), [column.id])
+  const onResize = useCallback(throttle((e, { size }) => onChangeWidth?.(size.width), 5), [])
 
   const onClick = useCallback((e: MouseEvent) => {
     if (!e.shiftKey) return
     e.preventDefault()
-    onChangeOrdering?.({
-      "NONE": "ASC" as Ordering,
-      "ASC": "DESC" as Ordering,
+    const order = {
+      "NONE": "ASC" as Order,
+      "ASC": "DESC" as Order,
       "DESC": undefined,
-    }[ordering ? ordering[0] : "NONE"])
-  }, [column.id, ordering])
+    }[sorting ? sorting.order : "NONE"]
+    if (!order) onChangeSort?.()
+    else onChangeSort?.({
+      order,
+      priority: typeof sorting === "undefined" ? Infinity : sorting.priority,
+    })
+  }, [sorting])
 
   if (drag.isDragging) {
     return <div ref={previewRef} className="HeadingCell" />
@@ -122,9 +128,9 @@ export function HeadingCell({
       >
         <div ref={dragRef} className="dragSource">
           <div ref={dropRef} className="dropTarget" />
-          <HeadingToggleControls ordering={ordering} {...props} />
+          <HeadingToggleControls sorting={sorting} {...props} />
           <div className="title">
-            {column.id}
+            {label}
           </div>
         </div>
       </div>

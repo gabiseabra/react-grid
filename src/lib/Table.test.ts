@@ -7,9 +7,9 @@ type TypeMap = {
 }
 
 const MyTable = new Table(new TProxy<TypeMap>(), {
-  a: "string",
-  b: "number",
-  c: "boolean",
+  a: { type: "string" },
+  b: { type: "number" },
+  c: { type: "boolean" },
 })
 
 describe("Table", () => {
