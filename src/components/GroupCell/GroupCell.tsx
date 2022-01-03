@@ -1,21 +1,17 @@
 import { useMemo } from "react"
 
-import { aggregate, TypeMap } from "../../lib/Schema"
-import { ColOf, RowOf, Table } from "../../lib/Table"
+import { aggregate, Col, Row, Schema } from "../../lib/Schema"
 import { ValueCell } from "../ValueCell"
 
 export type GroupCellProps = {
-  column: ColOf<Table<TypeMap, any>>,
-  rows: RowOf<Table<TypeMap, any>>[]
+  column: Col,
+  rows: Row[]
 }
 
 export function GroupCell({
   column,
   rows,
 }: GroupCellProps): JSX.Element {
-  const cell = useMemo(() => aggregate({
-    type: column.type,
-    value: rows.map((row) => row[column.id]),
-  }), [column.id, rows])
+  const cell = useMemo(() => aggregate(Schema.getCellArray(column.id, rows)), [column.id, rows])
   return <ValueCell cell={cell} className="GroupCell" />
 }

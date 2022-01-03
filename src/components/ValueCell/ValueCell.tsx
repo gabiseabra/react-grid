@@ -1,6 +1,6 @@
 import cx from "classnames"
 
-import { Value, ValueProps } from "."
+import { Value, ValueProps } from "./Value"
 
 export type ValueCellProps = {
   cell: ValueProps["cell"]

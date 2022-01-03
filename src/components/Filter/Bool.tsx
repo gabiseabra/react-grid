@@ -1,8 +1,8 @@
-import { TaggedFilters } from "../../lib/Schema"
+import { FilterMap } from "../../lib/Schema"
 
 export type BoolFilterProps = {
-  filter?: TaggedFilters["boolean"],
-  onChange?: (filters?: TaggedFilters["boolean"]) => any
+  filter?: FilterMap["boolean"],
+  onChange?: (filters?: FilterMap["boolean"]) => any
 }
 
 export function BoolFilter({ filter, onChange }: BoolFilterProps): JSX.Element {

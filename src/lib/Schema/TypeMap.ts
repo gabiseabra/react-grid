@@ -1,4 +1,5 @@
 import { Big } from "big.js"
+import { CellOf, Table, TaggedCellOf } from "../Table"
 
 export type TypeMap = {
   string: string | null,
@@ -8,60 +9,60 @@ export type TypeMap = {
   date: Date | null,
 }
 
-type MapList<T> = { [k in keyof T]: T[k][] }
+export type TypeTag = keyof TypeMap
 
-export type Value<T> = { [k in keyof T]: { type: k, value: T[k] } }[keyof T]
+export type CellT = TaggedCellOf<Table<TypeMap, any>>
 
-export type Agg<T> = (agg: Value<MapList<T>>) => Value<T>
+export type Cell = CellOf<Table<TypeMap, any>>
 
-export const aggregate: Agg<TypeMap> = (agg) => {
+export type Agg = { [type in TypeTag]: { type: type, values: CellT[type]["value"][] } }[TypeTag]
+
+export function aggregate(agg: Agg): Cell {
   switch (agg.type) {
     case "string": {
-      const distinctCount = new Set(agg.value).size
+      const distinctCount = new Set(agg.values).size
       const value = (() => {
         if (distinctCount === 0) return ""
-        if (distinctCount === 1) return agg.value[0]
+        if (distinctCount === 1) return agg.values[0]
         return `${distinctCount} values`
       })()
       return { type: "string", value }
     }
     case "number": {
-      const value = agg.value.reduce<number>((acc, x) => acc + (x || 0), 0)
+      const value = agg.values.reduce<number>((acc, x) => acc + (x || 0), 0)
       return { type: "number", value }
     }
     case "boolean": {
-      if (!agg.value.length) return { type: "percent", value: null }
-      const trueCount = agg.value.reduce<number>((acc, x) => acc + Number(x), 0)
-      const value = new Big(trueCount).div(agg.value.length)
+      if (!agg.values.length) return { type: "percent", value: null }
+      const trueCount = agg.values.reduce<number>((acc, x) => acc + Number(x), 0)
+      const value = new Big(trueCount).div(agg.values.length)
       return { type: "percent", value }
     }
     case "percent": {
-      if (!agg.value.length) return { type: "percent", value: null }
-      const value = agg.value.reduce<Big>((acc, x) => acc.add(x || 0), new Big(0)).div(agg.value.length)
+      if (!agg.values.length) return { type: "percent", value: null }
+      const value = agg.values.reduce<Big>((acc, x) => acc.add(x || 0), new Big(0)).div(agg.values.length)
       return { type: "percent", value }
     }
     case "date": return { type: "date", value: null }
   }
 }
 
-export type Tuple<T> = { [k in keyof T]: { type: k, a: T[k], b: T[k] } }[keyof T]
+type Cmp = { [type in TypeTag]: { type: type, a: TypeMap[type], b: TypeMap[type] } }[TypeTag]
 
-export type Cmp<T> = (agg: Tuple<T>) => number
-
-export const compare: Cmp<TypeMap> = (ty) => {
-  if (ty.a === ty.b) return 0
-  if (ty.a === null) return -1
-  if (ty.b === null) return 1
-  switch (ty.type) {
+export function compare(cmp: Cmp) {
+  if (cmp.a === cmp.b) return 0
+  if (cmp.a === null) return -1
+  if (cmp.b === null) return 1
+  switch (cmp.type) {
     case "string":
-      return ty.a.localeCompare(ty.b)
+      return cmp.a.localeCompare(cmp.b)
     case "percent":
-      return ty.a.cmp(ty.b)
+      return cmp.a.cmp(cmp.b)
     case "boolean":
     case "number":
     case "date":
-      if (ty.a > ty.b) return 1
-      if (ty.a < ty.b) return -1
+      if (cmp.a > cmp.b) return 1
+      if (cmp.a < cmp.b) return -1
       return 0
   }
 }

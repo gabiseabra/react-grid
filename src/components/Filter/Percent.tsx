@@ -1,8 +1,8 @@
-import { TaggedFilters } from "../../lib/Schema"
+import { FilterMap } from "../../lib/Schema"
 
 export type PercentFilterProps = {
-  filter?: TaggedFilters["percent"],
-  onChange?: (filters?: TaggedFilters["percent"]) => any
+  filter?: FilterMap["percent"],
+  onChange?: (filters?: FilterMap["percent"]) => any
 }
 
 export function PercentFilter({ filter, onChange }: PercentFilterProps): JSX.Element {

@@ -9,10 +9,10 @@ import { MouseEvent, useCallback } from "react"
 import { useDrag, useDrop } from "react-dnd"
 import { Resizable } from "react-resizable"
 
-import { Sort } from "../../lib/Schema"
+import { Order, Sorting } from "../../lib/Schema"
 
 type HeadingToggleControlsProps = {
-  sort?: [number, Sort]
+  sorting?: Sorting
   isPinned?: boolean
   isGrouped?: boolean
   onChangePinned?: (pinned: boolean) => void
@@ -20,7 +20,7 @@ type HeadingToggleControlsProps = {
 }
 
 function HeadingToggleControls({
-  sort,
+  sorting,
   isGrouped,
   isPinned,
   onChangeGrouped,
@@ -29,13 +29,13 @@ function HeadingToggleControls({
   return (
     <div className="toggleControls">
       <div className="space" />
-      <button className={cx("ordControl", { disabled: !sort })}>
-        {sort?.[1] === "DESC" ? (
+      <button className={cx("ordControl", { disabled: !sorting })}>
+        {sorting?.order === "DESC" ? (
           <Icon icon={faArrowUp} />
-        ) : sort?.[1] === "ASC" ? (
+        ) : sorting?.order === "ASC" ? (
           <Icon icon={faArrowDown} />
         ) : null}
-        {sort && <span>{sort[0] + 1}</span>}
+        {sorting && <span>{sorting.priority + 1}</span>}
       </button>
       <button
         className={cx("groupControl", { disabled: !isGrouped })}
@@ -54,21 +54,21 @@ function HeadingToggleControls({
 }
 
 type HeadingCellProps = {
-  column: { id: string, label: string }
+  label: string
   columnIndex: number
   size: { width: number, height: number }
   onDrop?: (ix: number) => void
   onChangeWidth?: (width: number) => void
-  onChangeSort?: (ord?: [number, Sort]) => void
+  onChangeSort?: (ord?: Sorting) => void
 } & HeadingToggleControlsProps
 
 type DnDItem = { columnIndex: number }
 
 export function HeadingCell({
-  column,
+  label,
   columnIndex,
   size,
-  sort,
+  sorting,
   onDrop,
   onChangeSort,
   onChangeWidth,
@@ -90,18 +90,22 @@ export function HeadingCell({
     }),
   }))
 
-  const onResize = useCallback(throttle((e, { size }) => onChangeWidth?.(size.width), 5), [column.id])
+  const onResize = useCallback(throttle((e, { size }) => onChangeWidth?.(size.width), 5), [])
 
   const onClick = useCallback((e: MouseEvent) => {
     if (!e.shiftKey) return
     e.preventDefault()
-    const ord = {
-      "NONE": "ASC" as Sort,
-      "ASC": "DESC" as Sort,
+    const order = {
+      "NONE": "ASC" as Order,
+      "ASC": "DESC" as Order,
       "DESC": undefined,
-    }[sort ? sort[1] : "NONE"]
-    onChangeSort?.(ord ? [sort ? sort[0] : Infinity, ord] : undefined)
-  }, [column.id, sort])
+    }[sorting ? sorting.order : "NONE"]
+    if (!order) onChangeSort?.()
+    else onChangeSort?.({
+      order,
+      priority: typeof sorting === 'undefined' ? Infinity : sorting.priority,
+    })
+  }, [sorting])
 
   if (drag.isDragging) {
     return <div ref={previewRef} className="HeadingCell" />
@@ -123,9 +127,9 @@ export function HeadingCell({
       >
         <div ref={dragRef} className="dragSource">
           <div ref={dropRef} className="dropTarget" />
-          <HeadingToggleControls sort={sort} {...props} />
+          <HeadingToggleControls sorting={sorting} {...props} />
           <div className="title">
-            {column.label}
+            {label}
           </div>
         </div>
       </div>

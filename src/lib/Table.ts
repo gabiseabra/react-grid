@@ -1,3 +1,5 @@
+import { isArray } from "lodash"
+
 export class TProxy<T> {
   public __Type: T
   constructor() {
@@ -29,14 +31,43 @@ export class Table<T, C extends CTMap<T>> {
     return { ...this.Columns[id], id }
   }
 
-  getCell<K extends ColumnTagsOf<this>>(id: K, row: RowOf<this>): TaggedCellOf<this>[TypeTagAt<this, K>]
+  getCell<id extends ColumnTagsOf<this>>(id: id, row: RowOf<this>): TaggedCellOf<this>[TypeTagAt<this>[id]]
   getCell(id: ColumnTagsOf<this>, row: RowOf<this>): CellOf<this> {
     return { type: this.Columns[id].type, value: row[id] }
+  }
+
+  getCellArray<id extends ColumnTagsOf<this>>(id: id, rows: RowOf<this>[]): TaggedCellArrayOf<this>[TypeTagAt<this>[id]]
+  getCellArray(id: ColumnTagsOf<this>, rows: RowOf<this>[]): CellArrayOf<this> {
+    return { type: this.Columns[id].type, values: rows.map((row) => row[id]) }
+  }
+
+  mapCell<id extends ColumnTagsOf<this>, R extends RowMapOf<this>>(id: id, map: R): CellMapOf<this, R>[id] {
+    return (Object.keys(map) as (keyof R)[]).reduce((acc, key) => ({
+      ...acc,
+      [key]:
+        isArray(map[key])
+          ? this.getCellArray(id, map[key] as RowOf<this>[]).values
+          : this.getCell(id, map[key] as RowOf<this>).value
+    }), { type: this.getCol(id).type } as CellMapOf<this, R>[id])
+  }
+
+  get columnTags(): ColumnTagsOf<this>[] {
+    return Object.keys(this.Columns)
+  }
+}
+
+type RowMapOf<T extends Table<any, any>> = Record<string, RowOf<T> | RowOf<T>[]>
+type CellMapOf<T extends Table<any, any>, R extends RowMapOf<T>> = {
+  [id in ColumnTagsOf<T>]: { type: TypeTagAt<T>[id] } & {
+    [k in keyof R]
+      : R[k] extends RowOf<T>[]
+      ? TypeAt<T>[id][]
+      : TypeAt<T>[id]
   }
 }
 
 export type RowOf<T extends Table<any, any>> = {
-  [k in ColumnTagsOf<T>]: TypeAt<T, k>
+  [id in ColumnTagsOf<T>]: TypeAt<T>[id]
 }
 
 export type TaggedColOf<T extends Table<any, any>> = {
@@ -51,13 +82,16 @@ export type TaggedCellOf<T extends Table<any, any>> = {
 
 export type CellOf<T extends Table<any, any>> = TaggedCellOf<T>[TypeTagsOf<T>]
 
+export type TaggedCellArrayOf<T extends Table<any, any>> = {
+  [k in TypeTagsOf<T>]: { type: k, values: TypeMapOf<T>[k][] }
+}
+
+export type CellArrayOf<T extends Table<any, any>> = TaggedCellArrayOf<T>[TypeTagsOf<T>]
+
 export type TypeMapOf<T extends Table<any, any>> = TypeOf<T["__TProxy"]>
 
-export type TypeTagAt<T extends Table<any, any>, K extends keyof T["Columns"]>
-  = T["Columns"][K]["type"] extends TypeTagsOf<T>
-  ? T["Columns"][K]["type"]
-  : never
-export type TypeAt<T extends Table<any, any>, K extends keyof T["Columns"]> = TypeMapOf<T>[TypeTagAt<T, K>]
+export type TypeTagAt<T extends Table<any, any>> = { [id in ColumnTagsOf<T>]: T["Columns"][id]["type"] }
+export type TypeAt<T extends Table<any, any>> = { [id in ColumnTagsOf<T>]: TypeMapOf<T>[TypeTagAt<T>[id]] }
 
 export type TypeTagsOf<T extends Table<any, any>> = keyof TypeOf<T["__TProxy"]>
 export type ColumnTagsOf<T extends Table<any, any>> = keyof T["Columns"]

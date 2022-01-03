@@ -1,5 +1,3 @@
-import cx from "classnames"
-
 import { TypeMap } from "../../lib/Schema"
 import { BoolValue } from "./Bool"
 import { DateValue } from "./Date"

@@ -1,8 +1,8 @@
-import { TaggedFilters } from "../../lib/Schema"
+import { FilterMap } from "../../lib/Schema"
 
 export type NumberFilerProps = {
-  filter?: TaggedFilters["number"],
-  onChange?: (filters?: TaggedFilters["number"]) => any
+  filter?: FilterMap["number"],
+  onChange?: (filters?: FilterMap["number"]) => any
 }
 
 export function NumberFilter({ filter, onChange }: NumberFilerProps): JSX.Element {

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react"
-import { TaggedFilters } from "../../lib/Schema"
+import { FilterMap } from "../../lib/Schema"
 
 export type StringFilterProps = {
   id: string
-  filter?: TaggedFilters["string"],
-  onChange?: (filters?: TaggedFilters["string"]) => any,
+  filter?: FilterMap["string"],
+  onChange?: (filters?: FilterMap["string"]) => any,
   possibleValues: Set<string | null>
 }
 
