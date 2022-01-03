@@ -1,5 +1,6 @@
-import { Filters } from "./Filters"
 import { Lens } from "monocle-ts"
+
+import { Filters } from "./Filters"
 import { ColId } from "./Schema"
 
 export type Order = "ASC" | "DESC"
@@ -60,7 +61,7 @@ export function filter(id: ColId): Lens<Query, Filters[typeof id] | undefined> {
     ({filters}) => filters[id],
     (filter) => (query) => ({
       ...query,
-      filter: {...query.filters, [id]: filter}
+      filter: {...query.filters, [id]: filter},
     })
   )
 }

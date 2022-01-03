@@ -12,7 +12,10 @@ import { GroupCell } from "./components/GroupCell"
 import { HeadingCell } from "./components/HeadingCell"
 import { ValueCell } from "./components/ValueCell"
 import { adjustScrollToCell } from "./lib/adjustScrollToCell"
+import { insertBefore, overMap } from "./lib/fp"
+import { isGroup } from "./lib/Group"
 import { usePins } from "./lib/hooks/usePins"
+import { useQuery } from "./lib/hooks/useQuery"
 import { useSelection } from "./lib/hooks/useSelection"
 import { useSize } from "./lib/hooks/useSize"
 import {
@@ -22,12 +25,9 @@ import {
   rowRange,
   stickyRangeRenderer,
 } from "./lib/Range"
-import * as Query from "./lib/Schema/Query"
-import { applyFilters, Col, Schema, Row } from "./lib/Schema"
+import { applyFilters, Col, Row,Schema } from "./lib/Schema"
 import { mkRow } from "./lib/Schema/arbitrary"
-import { insertBefore, overMap } from "./lib/fp"
-import { useQuery } from "./lib/hooks/useQuery"
-import { isGroup } from "./lib/Group"
+import * as Query from "./lib/Schema/Query"
 
 // Very large but not random (takes too long to generate 1M rows)
 // Uncomment to test the grid with offset adjustment

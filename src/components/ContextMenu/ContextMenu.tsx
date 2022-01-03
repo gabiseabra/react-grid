@@ -17,7 +17,7 @@ export function Context({renderMenu, children}: ContextProps) {
     const { top, left } = boudaryRef.current.getBoundingClientRect()
     setPosition({
       top: e.clientY - top,
-      left: e.clientX - left
+      left: e.clientX - left,
     })
     e.preventDefault()
   }, [])

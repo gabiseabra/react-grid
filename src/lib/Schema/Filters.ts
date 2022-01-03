@@ -1,7 +1,8 @@
 import { Big } from "big.js"
-import { compare } from "./TypeMap"
-import { ColId, Row, Schema } from "./Schema"
+
 import { TypeTagAt } from "../Table"
+import { ColId, Row, Schema } from "./Schema"
+import { compare } from "./TypeMap"
 
 export type FilterMap = {
   boolean: { value?: boolean }

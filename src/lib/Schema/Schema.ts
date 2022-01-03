@@ -1,6 +1,6 @@
+import { ColOf, ColumnTagsOf, RowOf, Table, TaggedColOf, TProxy } from "../Table"
 import { ColumnsDef } from "./ColumnDefs"
 import { TypeMap } from "./TypeMap"
-import { ColOf, ColumnTagsOf, RowOf, Table, TaggedColOf, TProxy } from "../Table"
 
 export const Schema = new Table(new TProxy<TypeMap>(), ColumnsDef)
 

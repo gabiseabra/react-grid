@@ -103,7 +103,7 @@ export function HeadingCell({
     if (!order) onChangeSort?.()
     else onChangeSort?.({
       order,
-      priority: typeof sorting === 'undefined' ? Infinity : sorting.priority,
+      priority: typeof sorting === "undefined" ? Infinity : sorting.priority,
     })
   }, [sorting])
 

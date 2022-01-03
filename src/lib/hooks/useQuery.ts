@@ -1,7 +1,8 @@
-import { pipe } from "lodash/fp";
-import { useEffect, useMemo, useState } from "react";
-import { groupBy, Group } from "../Group";
-import { applyFilters, ColId, compare, Order, Query, Row, Schema } from "../Schema";
+import { pipe } from "lodash/fp"
+import { useEffect, useMemo, useState } from "react"
+
+import { Group,groupBy } from "../Group"
+import { applyFilters, ColId, compare, Order, Query, Row, Schema } from "../Schema"
 
 type UseQueryOptions = {
   rows: Row[],
@@ -20,7 +21,7 @@ export function useQuery({rows, query}: UseQueryOptions): UseQuery {
   const isExpanded = (key: string) => Boolean(expandedGroups[key])
   const setExpanded = (key: string) => (isExpanded: boolean) => setExpandedGroups((prevState) => ({
     ...prevState,
-    [key]: isExpanded
+    [key]: isExpanded,
   }))
 
   const result: { rows: Row[], groups: Group<Row>[] } = useMemo(() => pipe(

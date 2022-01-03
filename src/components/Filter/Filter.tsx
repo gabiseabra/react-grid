@@ -33,7 +33,7 @@ export type FilterProps = {
 
 const setFilterAt = (id: ColId, setFilters: SetFilters) => (filter: Filters[typeof id]): void => setFilters((filters) => ({
   ...filters,
-  [id]: filter
+  [id]: filter,
 }))
 
 export function Filter({ column, rows, filters, setFilters }: FilterProps): JSX.Element {

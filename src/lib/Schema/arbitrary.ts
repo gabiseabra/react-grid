@@ -1,5 +1,6 @@
 import Big from "big.js"
 import * as Faker from "faker"
+
 import { Row, Schema } from "./Schema"
 import { TypeMap } from "./TypeMap"
 
@@ -18,6 +19,6 @@ export function arbitraryValue(type: keyof TypeMap, seed?: number): TypeMap[type
 export function mkRow(seed?: number) {
   return Schema.columnTags.reduce<Row>((acc, id) => ({
     ...acc,
-    [id]: arbitraryValue(Schema.getCol(id).type, seed)
+    [id]: arbitraryValue(Schema.getCol(id).type, seed),
   }), {} as Row)
 }

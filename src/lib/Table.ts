@@ -47,7 +47,7 @@ export class Table<T, C extends CTMap<T>> {
       [key]:
         isArray(map[key])
           ? this.getCellArray(id, map[key] as RowOf<this>[]).values
-          : this.getCell(id, map[key] as RowOf<this>).value
+          : this.getCell(id, map[key] as RowOf<this>).value,
     }), { type: this.getCol(id).type } as CellMapOf<this, R>[id])
   }
 

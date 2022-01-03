@@ -1,4 +1,5 @@
 import { Big } from "big.js"
+
 import { CellOf, Table, TaggedCellOf } from "../Table"
 
 export type TypeMap = {

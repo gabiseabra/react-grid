@@ -1,6 +1,6 @@
-import {Prism, Lens} from 'monocle-ts'
-import {some, none} from "fp-ts/Option"
-import { pipe } from 'lodash/fp'
+import {none,some} from "fp-ts/Option"
+import { pipe } from "lodash/fp"
+import {Lens,Prism} from "monocle-ts"
 
 export type Endo<T> = (x: T) => T
 
@@ -38,7 +38,7 @@ export const overMap = (fn: (as: any[]) => any[]) => (as: Map<any, any>): Map<an
 
 // https://github.com/gcanti/monocle-ts/issues/22#issuecomment-479763960
 export const fromDiscriminatedUnion = <U extends {type: string | number | symbol}>() =>
-  <Type extends U['type']>(type: Type) =>
+  <Type extends U["type"]>(type: Type) =>
     new Prism<U, Extract<U, {type: Type}>>(
       union => (union.type === type ? some(union) : none as any),
       s => s

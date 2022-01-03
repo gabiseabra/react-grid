@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+
 import { FilterMap } from "../../lib/Schema"
 
 export type StringFilterProps = {

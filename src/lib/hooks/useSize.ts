@@ -13,7 +13,7 @@ type UseSize<K extends string | number | symbol> = {
 
 export function useSize<K extends string | number | symbol>({
   gridRef,
-  defaultSize
+  defaultSize,
 }: UseSizeOptions): UseSize<K> {
   const sizeRef: MutableRefObject<{ [k in K]?: number }> = useRef({})
   return {

@@ -97,7 +97,7 @@ export const ColumnsDef = {
   "date16": { "type": "date" },
   "date17": { "type": "date" },
   "date18": { "type": "date" },
-  "date19": { "type": "date" }
+  "date19": { "type": "date" },
 } as const
 
 export type ColumnsDef = typeof ColumnsDef
