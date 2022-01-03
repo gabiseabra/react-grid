@@ -1,7 +1,7 @@
 import "./styles.scss"
 
 import pipe from "lodash/fp/pipe"
-import { RefObject, useEffect, useMemo, useRef, useState } from "react"
+import { RefObject, useCallback, useMemo, useRef, useState } from "react"
 import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import * as RV from "react-virtualized"
@@ -25,7 +25,7 @@ import {
   rowRange,
   stickyRangeRenderer,
 } from "./lib/Range"
-import { applyFilters, Col, Row,Schema } from "./lib/Schema"
+import { Col, Filters, Row,Schema } from "./lib/Schema"
 import { mkRow } from "./lib/Schema/arbitrary"
 import * as Query from "./lib/Schema/Query"
 
@@ -52,6 +52,11 @@ export default function App(): JSX.Element {
     return {columnKeys, columnEntry}
   }, [columns])
 
+  const setFilters = useCallback((update: (filters: Filters) => Filters) => setQuery((query) => ({
+    ...query,
+    filters: update(query.filters),
+  })), [])
+
   const columnWidth = useSize({
     gridRef,
     defaultSize: 130,
@@ -74,7 +79,11 @@ export default function App(): JSX.Element {
           <CM.Context
             renderMenu={(ref, style) => (
               <CM.Menu ref={ref} style={style}>
-                lmao
+                <Filter
+                  column={column}
+                  rows={initialRows}
+                  filters={query.filters}
+                  setFilters={setFilters} />
               </CM.Menu>
             )}
           >
