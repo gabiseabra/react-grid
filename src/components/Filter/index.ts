@@ -1,2 +1,2 @@
-// import "./Filter.scss"
+import "./Filter.scss"
 export * from "./Filter"
