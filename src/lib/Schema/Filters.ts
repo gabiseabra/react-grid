@@ -1,11 +1,20 @@
 import { Big } from "big.js"
+import { ColId } from "."
 
-import { ColumnTagsOf, TypeTagAt } from "../Table"
-import { Schema } from "./Schema"
-import { compare,TypeMap } from "./TypeMap"
+import { TypeTagAt } from "../Table"
+import { Schema, Row } from "./Schema"
+import { compare } from "./TypeMap"
 
 export type TaggedFilters = {
-  [k in keyof TypeMap]: Parameters<typeof TaggedFilterFns[k]>[0]
+  boolean: { value?: boolean }
+  string: { values: (string | null)[] }
+  number: ComparisonFilter<number>
+  percent: ComparisonFilter<Big>
+  date: ComparisonFilter<Date>
+}
+
+export type Filters = {
+  [id in ColId]?: TaggedFilters[TypeTagAt<Schema, id>]
 }
 
 export type ComparisonFilter<T>
@@ -29,7 +38,7 @@ const filterCmp = <T>(filter: ComparisonFilter<T>, cmp: (a: T | null, b: T | nul
   }
 }
 
-export const TaggedFilterFns = {
+const TaggedFilterFns = {
   boolean: (filter: { value?: boolean }) => (a: boolean | null) => typeof filter.value === "undefined" || a === filter.value,
   string: (filter: { values: (string | null)[] }) => (a: string | null) => a !== null && filter.values.includes(a),
   number: (filter: ComparisonFilter<number>) => filterCmp(filter, (a, b) => compare({ type: "number", a, b })),
@@ -37,7 +46,16 @@ export const TaggedFilterFns = {
   date: (filter: ComparisonFilter<Date>) => filterCmp(filter, (a, b) => compare({ type: "date", a, b })),
 } as const
 
-export function applyFilter<id extends ColumnTagsOf<typeof Schema>>(id: id): typeof TaggedFilterFns[TypeTagAt<typeof Schema, id>]
-export function applyFilter(id: ColumnTagsOf<typeof Schema>): typeof TaggedFilterFns[TypeTagAt<typeof Schema, typeof id>] {
+export function filterFn<id extends ColId>(id: id): typeof TaggedFilterFns[TypeTagAt<typeof Schema, id>]
+export function filterFn(id: ColId): typeof TaggedFilterFns[TypeTagAt<typeof Schema, typeof id>] {
   return TaggedFilterFns[Schema.getCol(id).type]
+}
+
+export const applyFilters = (filters: Filters) => (rows: Row[]): Row[] => {
+  const ids = Object.keys(filters) as ColId[]
+  return rows.filter((row) => ids.reduce<boolean>((acc, id) => {
+    const filter = filters[id]
+    if (!acc || !filter) return acc
+    return (filterFn(id) as any)(filter)(row[id])
+  }, true))
 }

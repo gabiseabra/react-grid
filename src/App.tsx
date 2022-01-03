@@ -25,75 +25,70 @@ import {
   rowRange,
   stickyRangeRenderer,
 } from "./lib/Range"
-import { applyFilter,Columns,compare, Row, Schema, TaggedFilters, Tuple, TypeMap } from "./lib/Schema"
+import { ICol,iGroupBy,iOrderBy,Columns, Preset, Row, Schema, applyFilters, iColumn, colWidth, columns } from "./lib/Schema"
+import { id } from "./lib/fp"
 
 // Very large but not random (takes too long to generate 1M rows)
 // Uncomment to test the grid with offset adjustment
 // const initialRows: Row[] = Array(1000000).fill(mkRow(0))
 // Smaller and random
-const initialRows: Row[] = Array(10000).fill(null).map(() => Row(0))
+const rows: Row[] = Array(10000).fill(null).map(() => Row(0))
 
 const headingRange = rowRange(0)
 
 const HEADER_HEIGHT = 70
 
+const initialPreset: Preset = {
+  groupBy: [],
+  orderBy: [],
+  filters: {},
+  columns: Columns.map(ICol)
+}
+
 export default function App(): JSX.Element {
   const gridRef: RefObject<RV.Grid> = useRef(null)
-  const [rows, setRows] = useState(initialRows)
-  const [columns, setColumns] = useState(Columns)
+  const [preset, setPreset] = useState(initialPreset)
 
-  const filters = useFilters<typeof Schema, TaggedFilters>()
-  const filteredRows = useApplyFilter<typeof Schema, TaggedFilters>(rows, filters.filters, applyFilter)
-  const pins = usePins(setColumns)
-  const orderBy = useOrderBy(setRows, (id, a, b) => compare({
-    type: Schema.getCol(id).type,
-    a: a[id],
-    b: b[id],
-  } as Tuple<TypeMap>))
+  const filteredRows = useMemo(() => applyFilters(preset.filters)(rows), [preset.filters])
+  const pins = usePins(pipe(columns.modify, setPreset))
   const groupBy = useGroupBy(filteredRows)
   const selection = useSelection({
-    selectableRange: [[0, 1], [columns.length, groupBy.groupedRows.length + 1]],
+    selectableRange: [[0, 1], [preset.columns.length, groupBy.groupedRows.length + 1]],
     scrollToCell: adjustScrollToCell({
       gridRef,
       offset: { columnIndex: pins.pinCount, rowIndex: 1 },
     }),
   })
-  const columnWidth = useSize({
-    gridRef,
-    axis: "x",
-    defaultSize: 130,
-    getKey: (ix) => columns[ix].id,
-  })
 
-  useEffect(() => gridRef.current?.recomputeGridSize(), [columns])
+  // useEffect(() => gridRef.current?.recomputeGridSize(), [preset.columns])
 
   const cellRenderer = useMemo(() => mkCellRenderer(
     [headingRange, ({ columnIndex: index, style, key }) => {
-      const column = columns[index]
+      const column = preset.columns[index]
+      console.log(".", column)
       return (
         <div key={key} style={style}>
           <CM.Context
             renderMenu={(ref, style) => (
               <CM.Menu ref={ref} style={style}>
-                <Filter
-                  column={column}
-                  rows={rows}
-                  filters={filters}
-                />
+                lmao
               </CM.Menu>
             )}
           >
             <HeadingCell
               column={column}
               columnIndex={index}
+              size={{ width: column.width, height: HEADER_HEIGHT }}
+              sort={iOrderBy(column.id).get(preset)}
               isPinned={pins.isPinned(index)}
-              isGrouped={groupBy.groupedColumns.includes(column.id)}
-              size={{ width: columnWidth.get(index), height: HEADER_HEIGHT }}
-              ordering={orderBy.getOrdering(column.id)}
+              isGrouped={iGroupBy(column.id).get(preset)}
               onChangePinned={(pinned) => pinned ? pins.addPin(index) : pins.removePin(index)}
-              onChangeGrouped={(grouped) => grouped ? groupBy.addGroupBy(column.id) : groupBy.removeGroupBy(column.id)}
-              onChangeOrdering={(ordering) => ordering ? orderBy.addOrderBy(column.id, ordering) : orderBy.removeOrderBy(column.id)}
-              onResize={({ width }) => columnWidth.set(index, width)}
+              onChangeGrouped={pipe(iGroupBy(column.id).set, setPreset)}
+              onChangeSort={pipe(iOrderBy(column.id).set, setPreset)}
+              onChangeWidth={(width) => {
+                column.width = width
+                gridRef.current?.recomputeGridSize({ columnIndex: index })
+              }}
               onDrop={(ix) => pins.insertBefore(ix, index)}
             />
           </CM.Context>
@@ -101,7 +96,7 @@ export default function App(): JSX.Element {
       )
     }],
     [x => x, ({ columnIndex, rowIndex, style, key }) => {
-      const column = columns[columnIndex]
+      const column = preset.columns[columnIndex]
       const row = groupBy.groupedRows[rowIndex - 1]
       if (isGroup(row)) {
         return (
@@ -120,12 +115,10 @@ export default function App(): JSX.Element {
       }
     }]
   ), [
-    columns,
     pins.pinCount,
     selection.selection,
     selection.isSelecting,
-    groupBy.groupedRows,
-    orderBy.orderedBy,
+    preset
   ])
 
   const cellRangeRenderer = useMemo(() => mkCellRangeRenderer(
@@ -151,9 +144,9 @@ export default function App(): JSX.Element {
             overscanRowCount={0}
             cellRangeRenderer={cellRangeRenderer}
             cellRenderer={cellRenderer}
-            columnCount={columns.length}
+            columnCount={preset.columns.length}
             rowCount={groupBy.groupedRows.length + 1}
-            columnWidth={({ index }) => columnWidth.get(index)}
+            columnWidth={({ index }) => preset.columns[index].width}
             rowHeight={({ index }) => index === 0 ? HEADER_HEIGHT : 30}
           />
         )}

@@ -18,7 +18,7 @@ export type UsePins = {
 
 const PIN_COLUMN_OFFSET = 0
 
-export function usePins(setColumns: Dispatch<SetStateAction<any[]>>): UsePins {
+export function usePins(setColumns: (fn: (as: any[]) => any[]) => any): UsePins {
   const [pinCount, setCount] = useState(0)
   const isPinned = (ix: number) => ix < pinCount
   const addPin = (ix: number) => {

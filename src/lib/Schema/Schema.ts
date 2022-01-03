@@ -118,4 +118,6 @@ export const Row = (i: number): Row => Columns.reduce((acc, { id, type }) => ({
   ...acc,
 }), {}) as Row
 
+export type TaggedCell = T.TaggedCellOf<Schema>
+
 export type Cell = T.CellOf<Schema>

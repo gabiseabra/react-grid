@@ -33,7 +33,6 @@ export class Table<T, C extends CTMap<T>> {
   getCell(id: ColumnTagsOf<this>, row: RowOf<this>): CellOf<this> {
     return { type: this.Columns[id].type, value: row[id] }
   }
-
 }
 
 export type RowOf<T extends Table<any, any>> = {
