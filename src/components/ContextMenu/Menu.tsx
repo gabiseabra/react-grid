@@ -70,11 +70,28 @@ export function SubMenu({id, label, children}: SubMenuProps): JSX.Element {
   )
 }
 
+type ConfirmProps = {
+  onConfirmed: MouseEventHandler
+  children: (confirmed)
+}
+
+export function Confirm({ onConfirmed }) {
+
+  const [confirmed, setConfirmed] = useState(false)
+  const onClick: MouseEventHandler = useCallback((e) => {
+  })
+  if (!confirmed) {
+      
+  } 
+
+}
+
 export type ButtonProps = {
   className?: string
   style?: CSSProperties
   onClick?: MouseEventHandler
   children: ReactNode
+  confirm?: boolean
 }
 
 export function Button({className, ...props}: ButtonProps): JSX.Element {
