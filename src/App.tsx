@@ -84,6 +84,13 @@ export default function App(): JSX.Element {
           <CM.Context
             renderMenu={(ref, style) => (
               <CM.Menu ref={ref} style={style}>
+                <CM.SubMenu id="filters" label="Filter">
+                  <Filter
+                    column={column}
+                    rows={initialRows}
+                    filters={query.filters}
+                    setFilters={setFilters} />
+                </CM.SubMenu>
                 <CM.Button
                   onClick={() => setColumns((cols) => {
                     const {...col} = cols.get(key)
@@ -108,13 +115,6 @@ export default function App(): JSX.Element {
                     </CM.Button>
                   }
                 </CM.Confirm>
-                <CM.SubMenu id="filters" label="Filters">
-                  <Filter
-                    column={column}
-                    rows={initialRows}
-                    filters={query.filters}
-                    setFilters={setFilters} />
-                </CM.SubMenu>
                 <CM.SubMenu id="test" label="Testing">
                   <CM.Button onClick={() => console.log("lmao")}>Eyy</CM.Button>
                   <CM.SubMenu id="eyy" label="Eyy">lmao</CM.SubMenu>
