@@ -71,7 +71,7 @@ export default function App(): JSX.Element {
       gridRef,
       offset: { columnIndex: pins.pinCount, rowIndex: 1 },
     }),
-  })
+  }, [columns.size, res.result.length])
 
   useEffect(() => gridRef.current?.recomputeGridSize(), [columns])
   useEffect(() => selection.clearSelection(), [columns, res.result])

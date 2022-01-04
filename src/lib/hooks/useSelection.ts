@@ -54,12 +54,13 @@ const emptyState = {
 export function useSelection({
   selectableRange,
   scrollToCell,
-}: UseSelectionOptions): UseSelection {
+}: UseSelectionOptions, deps: any[] = []): UseSelection {
   const [{ isSelecting, focus, pivot }, setState] = useState(emptyState)
   const selection = useMemo(() => focus && pivot && mkRange(focus, pivot), [focus, pivot])
   const isSelected = (cell: Point) => Boolean(selection && isContained([cell, cell])(selection))
   const isFocused = (cell: Point) => Boolean(focus && cellCmp(cell, focus))
   const clearSelection = () => setState(emptyState)
+
   useEffect(() => {
     if (!isSelecting && focus) scrollToCell({ columnIndex: focus[0], rowIndex: focus[1] })
   }, [focus])
@@ -83,7 +84,7 @@ export function useSelection({
     window.addEventListener("keydown", keyDownHandler)
 
     return () => window.removeEventListener("keydown", keyDownHandler)
-  }, [])
+  }, deps)
 
   return {
     selection,
