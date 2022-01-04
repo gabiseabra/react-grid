@@ -84,15 +84,37 @@ export default function App(): JSX.Element {
           <CM.Context
             renderMenu={(ref, style) => (
               <CM.Menu ref={ref} style={style}>
-                <CM.Button onClick={TODO}>Duplicate</CM.Button>
-                <CM.Button onClick={TODO}>Delete</CM.Button>
-                <CM.SubMenu id="filters" label="Filters">
+                <CM.SubMenu id="filters" label="Filter">
                   <Filter
                     column={column}
                     rows={initialRows}
                     filters={query.filters}
                     setFilters={setFilters} />
                 </CM.SubMenu>
+                <CM.Button
+                  onClick={() => setColumns((cols) => {
+                    const {...col} = cols.get(key)
+                    const ix = Array.from(cols.keys()).indexOf(key)
+                    const otherKey = `${column.id}:${Date.now()}`
+                    const nextCols = Array.from(cols)
+                    nextCols.splice(ix + 1, 0, [otherKey, col])
+                    return new Map(nextCols)
+                  })}
+                >
+                  Duplicate
+                </CM.Button>
+                <CM.Confirm
+                  onConfirmed={() => setColumns((cols) => {
+                    cols.delete(key)
+                    return new Map(cols)
+                  })}
+                >
+                  {(onClick, state) =>
+                    <CM.Button onClick={onClick}>
+                      {state === "CONFIRM" ? "Really?" : "Delete"}
+                    </CM.Button>
+                  }
+                </CM.Confirm>
                 <CM.SubMenu id="test" label="Testing">
                   <CM.Button onClick={() => console.log("lmao")}>Eyy</CM.Button>
                   <CM.SubMenu id="eyy" label="Eyy">lmao</CM.SubMenu>
