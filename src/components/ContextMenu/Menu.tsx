@@ -1,7 +1,7 @@
-import cx from "classnames"
-import { createContext, CSSProperties, ForwardedRef, forwardRef, MouseEventHandler, ReactNode, useCallback, useContext, useState } from "react"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 import { FontAwesomeIcon as Icon } from "@fortawesome/react-fontawesome"
+import cx from "classnames"
+import { createContext, CSSProperties, ForwardedRef, forwardRef, KeyboardEventHandler, MouseEventHandler, ReactNode, useCallback, useContext, useEffect, useState } from "react"
 
 type MenuContext = {
   activeItem?: string
@@ -70,20 +70,31 @@ export function SubMenu({id, label, children}: SubMenuProps): JSX.Element {
   )
 }
 
-type ConfirmProps = {
-  onConfirmed: MouseEventHandler
-  children: (confirmed)
+type ConfirmationState = "NOT_CONFIRMED" | "CONFIRM" | "CONFIRMED"
+
+type ConfirmProps<args extends any[]> = {
+  onConfirmed: (...args: args) => void
+  children: (fn: (...args: args) => void, state: ConfirmationState) => ReactNode
 }
 
-export function Confirm({ onConfirmed }) {
-
-  const [confirmed, setConfirmed] = useState(false)
-  const onClick: MouseEventHandler = useCallback((e) => {
+export function Confirm<args extends any[]>({ onConfirmed, children }: ConfirmProps<args>): JSX.Element {
+  const [state, setState] = useState("NOT_CONFIRMED" as ConfirmationState)
+  const onConfirm = useCallback((...args: args) => {
+    if (state === "CONFIRM") {
+      setState("CONFIRMED")
+      onConfirmed(...args)
+    } else {
+      setState("CONFIRM")
+    }
+  }, [state, onConfirmed])
+  useEffect(() => {
+    const keyDownHandler = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && state === "CONFIRM") setState("NOT_CONFIRMED") 
+    }
+    window.addEventListener("keydown", keyDownHandler)
+    return () => window.removeEventListener("keydown", keyDownHandler)
   })
-  if (!confirmed) {
-      
-  } 
-
+  return <>{children(onConfirm, state)}</>
 }
 
 export type ButtonProps = {

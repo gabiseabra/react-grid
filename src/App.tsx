@@ -85,7 +85,18 @@ export default function App(): JSX.Element {
             renderMenu={(ref, style) => (
               <CM.Menu ref={ref} style={style}>
                 <CM.Button onClick={TODO}>Duplicate</CM.Button>
-                <CM.Button confirm onClick={() => setColumns((cols) => { cols.delete(key); return new Map(cols) })}>Delete</CM.Button>
+                <CM.Confirm
+                  onConfirmed={() => setColumns((cols) => {
+                    cols.delete(key)
+                    return new Map(cols)
+                  })}
+                >
+                  {(onClick, state) =>
+                    <CM.Button onClick={onClick}>
+                      {state === "CONFIRM" ? "Really?" : "Delete"}
+                    </CM.Button>
+                  }
+                </CM.Confirm>
                 <CM.SubMenu id="filters" label="Filters">
                   <Filter
                     column={column}
