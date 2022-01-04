@@ -28,17 +28,17 @@ export class Table<T, C extends CTMap<T>> {
   ) { }
 
   getCol<K extends ColumnTagsOf<this>>(id: K): TaggedColOf<this>[K] {
-    return { ...this.Columns[id], id }
+    return { ...(this.Columns[id] || {type: undefined}), id }
   }
 
   getCell<id extends ColumnTagsOf<this>>(id: id, row: RowOf<this>): TaggedCellOf<this>[TypeTagAt<this>[id]]
   getCell(id: ColumnTagsOf<this>, row: RowOf<this>): CellOf<this> {
-    return { type: this.Columns[id].type, value: row[id] }
+    return { type: (this.Columns[id] || {}).type, value: row[id] }
   }
 
   getCellArray<id extends ColumnTagsOf<this>>(id: id, rows: RowOf<this>[]): TaggedCellArrayOf<this>[TypeTagAt<this>[id]]
   getCellArray(id: ColumnTagsOf<this>, rows: RowOf<this>[]): CellArrayOf<this> {
-    return { type: this.Columns[id].type, values: rows.map((row) => row[id]) }
+    return { type: (this.Columns[id] || {}).type, values: rows.map((row) => row[id]) }
   }
 
   mapCell<id extends ColumnTagsOf<this>, R extends RowMapOf<this>>(id: id, map: R): CellMapOf<this, R>[id] {
@@ -48,7 +48,7 @@ export class Table<T, C extends CTMap<T>> {
         isArray(map[key])
           ? this.getCellArray(id, map[key] as RowOf<this>[]).values
           : this.getCell(id, map[key] as RowOf<this>).value,
-    }), { type: this.getCol(id).type } as CellMapOf<this, R>[id])
+    }), { type: (this.getCol(id) || {}).type } as CellMapOf<this, R>[id])
   }
 
   get columnTags(): ColumnTagsOf<this>[] {
