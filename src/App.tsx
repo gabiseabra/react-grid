@@ -48,7 +48,6 @@ export default function App(): JSX.Element {
   const gridRef: RefObject<RV.Grid> = useRef(null)
   const {
     columns,
-    setColumns,
     columnByIndex,
     pinCount,
     pinnedRange,
@@ -86,25 +85,10 @@ export default function App(): JSX.Element {
                     filters={query.filters}
                     setFilters={preset.setFilters} />
                 </CM.SubMenu>
-                <CM.Button
-                  onClick={() => setColumns((cols) => {
-                    const {...col} = cols.get(column.key)
-                    const ix = Array.from(cols.keys()).indexOf(column.key)
-                    col.key = `${Date.now()}`
-                    const nextCols = Array.from(cols)
-                    nextCols.splice(ix + 1, 0, [col.key, col])
-                    return new Map(nextCols)
-                  })}
-                >
+                <CM.Button onClick={preset.cloneColumn(column.key)}>
                   Duplicate
                 </CM.Button>
-                <CM.Confirm
-                  onConfirmed={() => setColumns((cols) => {
-                    const nextCols = new Map(cols)
-                    nextCols.delete(column.key)
-                    return nextCols
-                  })}
-                >
+                <CM.Confirm onConfirmed={preset.deleteColumn(column.key)}>
                   {(onClick, state) =>
                     <CM.Button onClick={onClick}>
                       {state === "CONFIRM" ? "Really?" : "Delete"}

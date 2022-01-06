@@ -88,17 +88,15 @@ export function usePreset(initialPreset: Preset): UsePreset {
     pinnedRange,
     isPinned: pipe(indexByColKey, pins.isPinned),
     moveColumn: (ix) => pipe(indexByColKey, pins.moveTo(ix)),
-    deleteColumn: pipe(x => () => x, indexByColKey, pins.deleteAt),
     insertColumn: (ix, col) => pins.insertAt(ix)([col.key, col]),
-    cloneColumn: (k) => () => setColumns((cols) => {
-      const col = cols.get(k)
-      if (!col) return cols
-      const ix = Array.from(cols.keys()).indexOf(col.key)
-      const nextCol = {...col, key: `${Date.now()}`}
-      const nextCols = Array.from(cols)
-      nextCols.splice(ix + 1, 0, [nextCol.key, nextCol])
-      return new Map(nextCols)
-    }),
+    deleteColumn: (k) => () => pins.deleteAt(indexByColKey(k)),
+    cloneColumn: (k) => () => {
+      const col = columns.get(k)
+      if (!col) return
+      const ix = Array.from(columns.keys()).indexOf(col.key)
+      const key = String(Date.now())
+      pins.insertAt(ix + 1)([key, {...col, key}])
+    },
     setPinned: pipe(indexByColKey, pins.setPinned),
     setWidth: (k) => pipe(setWidth, modifyAt(k), setColumns),
     setLabel: (k) => pipe(setLabel, modifyAt(k), setColumns),
