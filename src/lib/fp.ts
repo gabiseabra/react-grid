@@ -1,15 +1,5 @@
 export type Endo<T> = (x: T) => T
 
-export type TaggedK<T, K extends string> = {
-  [k in keyof T]: { [_ in K]: k } & T[k]
-}
-
-export type TaggedKV<T, K extends string, V extends string> = {
-  [k in keyof T]: { [_ in K]: k } & { [_ in V]: T[k] }
-}
-
-export type Dist<T> = T[keyof T]
-
 export const filter = <T>(fn: (x: T) => boolean) => (as: T[]): T[] => as.filter(fn)
 
 export const append = <T>(a: T) => (as: T[]): T[] => [...as, a]
