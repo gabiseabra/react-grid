@@ -1,4 +1,5 @@
 import { Big } from "big.js"
+import { isEqual } from "lodash"
 
 import { TypeTagAt } from "../Table"
 import { ColId, Row, Schema } from "./Schema"
@@ -53,3 +54,5 @@ export const applyFilters = (filters: Filters) => (rows: Row[]): Row[] => {
     return (FilterFns[Schema.getCol(id).type] as any)(filter)(row[id])
   }, true))
 }
+
+export const eqFilters = (a: Filters, b: Filters) => isEqual(a, b)

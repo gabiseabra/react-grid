@@ -56,7 +56,7 @@ export function StringFilter({ id, filter, onChange, possibleValues }: StringFil
                   : removeValue(value)
               )}
             />
-            <label htmlFor={`${id}:${value || ""}`}>{value}</label>
+            <label htmlFor={`${id}:v:${value || ""}`}>{value}</label>
           </li>
         ))}
       </ul>

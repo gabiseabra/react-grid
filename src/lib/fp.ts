@@ -1,12 +1,14 @@
-import {none,some} from "fp-ts/Option"
-import { pipe } from "lodash/fp"
-import {Lens,Prism} from "monocle-ts"
-
 export type Endo<T> = (x: T) => T
 
-export type Dist<T> = T[keyof T]
+export type TaggedK<T, K extends string> = {
+  [k in keyof T]: { [_ in K]: k } & T[k]
+}
 
-export const id = <T>(x: T): T => x
+export type TaggedKV<T, K extends string, V extends string> = {
+  [k in keyof T]: { [_ in K]: k } & { [_ in V]: T[k] }
+}
+
+export type Dist<T> = T[keyof T]
 
 export const filter = <T>(fn: (x: T) => boolean) => (as: T[]): T[] => as.filter(fn)
 
@@ -34,12 +36,15 @@ export const moveToStart = (ixs: number[]) => (as: any[]): any[] => {
   return start.concat(as)
 }
 
-export const overMap = (fn: (as: any[]) => any[]) => (as: Map<any, any>): Map<any, any> => new Map(fn(Array.from(as)))
+export const overMap = <K, A, B>(fn: (as: [K, A][]) => [K, B][]) => (as: Map<K, A>): Map<K, B> => new Map(fn(Array.from(as)))
 
-// https://github.com/gcanti/monocle-ts/issues/22#issuecomment-479763960
-export const fromDiscriminatedUnion = <U extends {type: string | number | symbol}>() =>
-  <Type extends U["type"]>(type: Type) =>
-    new Prism<U, Extract<U, {type: Type}>>(
-      union => (union.type === type ? some(union) : none as any),
-      s => s
-    )
+export const mapValues = <A, B>(fn: (a: A, ix: number) => B) => <K>(as: Map<K, A>): Map<K, B> => new Map(
+  Array.from(as.entries()).map(([k, a], ix) => [k, fn(a, ix)])
+)
+
+export const mapToObject = <A, B>(fn: (a: A, ix: number) => B) => <K extends string | number | symbol>(as: Map<K, A>): { [_ in K]: B } =>
+  Object.fromEntries(Array.from<[K, A]>(as).map<[K, B]>(([k, a], ix) => [k, fn(a, ix)])) as { [_ in K]: B }
+
+export function hasKey<T, K extends keyof T>(obj: Partial<T>, key: K): obj is Partial<T> & { [k in K]: T[k] } {
+  return Object.prototype.hasOwnProperty.call(obj, key)
+}

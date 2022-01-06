@@ -55,19 +55,23 @@ function HeadingToggleControls({
 
 type HeadingCellProps = {
   label: string
+  columnKey: string
   columnIndex: number
-  size: { width: number, height: number }
-  onDrop?: (ix: number) => void
+  width: number
+  height: number
+  onDrop?: (columnKey: string) => void
   onChangeWidth?: (width: number) => void
   onChangeSort?: (ord?: Sorting) => void
 } & HeadingToggleControlsProps
 
-type DnDItem = { columnIndex: number }
+type DnDItem = { columnKey: string }
 
 export function HeadingCell({
   label,
+  columnKey,
   columnIndex,
-  size,
+  width,
+  height,
   sorting,
   onDrop,
   onChangeSort,
@@ -76,7 +80,7 @@ export function HeadingCell({
 }: HeadingCellProps): JSX.Element {
   const [drag, dragRef, previewRef] = useDrag(() => ({
     type: "column",
-    item: { columnIndex } as DnDItem,
+    item: { columnKey } as DnDItem,
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -84,7 +88,7 @@ export function HeadingCell({
 
   const [drop, dropRef] = useDrop(() => ({
     accept: "column",
-    drop: ({ columnIndex: ix }: DnDItem) => onDrop?.(ix),
+    drop: ({ columnKey: key }: DnDItem) => onDrop?.(key),
     collect: (monitor) => ({
       isDragging: Boolean(monitor.getItem()),
       isOver: monitor.isOver({ shallow: true }),
@@ -117,15 +121,15 @@ export function HeadingCell({
   return (
     <Resizable
       axis="x"
-      width={size.width}
-      height={size.height}
+      width={width}
+      height={height}
       onResize={onResize}
-      minConstraints={[100, size.height]}
+      minConstraints={[100, height]}
       resizeHandles={["e"]}
     >
       <div
         className={cx("HeadingCell", drop)}
-        style={size}
+        style={{ width, height }}
         onClick={onClick}
       >
         <div ref={dragRef} className="dragSource">

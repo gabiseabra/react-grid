@@ -1,7 +1,7 @@
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 import { FontAwesomeIcon as Icon } from "@fortawesome/react-fontawesome"
 import cx from "classnames"
-import { createContext, CSSProperties, ForwardedRef, forwardRef, KeyboardEventHandler, MouseEventHandler, ReactNode, useCallback, useContext, useEffect, useState } from "react"
+import { createContext, CSSProperties, ForwardedRef, forwardRef, MouseEventHandler, ReactNode, useCallback, useContext, useEffect, useState } from "react"
 
 type MenuContext = {
   activeItem?: string

@@ -28,7 +28,7 @@ export function useQuery({rows, query}: UseQueryOptions): UseQuery {
     applyFilters(query.filters),
     applyOrderBy(query.orderBy),
     (rows) => ({ rows, groups: groupBy(query.groupBy)(rows) })
-  )(rows), [query])
+  )([...rows]), [query, rows])
 
   const groupedResult: (Group<Row> | Row)[] = useMemo(() => {
     if (!result.groups.length) return result.rows
@@ -48,7 +48,10 @@ export function useQuery({rows, query}: UseQueryOptions): UseQuery {
   }
 }
 
-const applyOrderBy = (orderBy: [ColId, Order][]) => (rows: Row[]): Row[] => [...rows].sort(sortFn(orderBy))
+const applyOrderBy = (orderBy: [ColId, Order][]) => (rows: Row[]): Row[] => {
+  if (!orderBy.length) return rows
+  return rows.sort(sortFn(orderBy))
+}
 
 const sortFn = (orderBy: [ColId, Order][]) => (a: Row, b: Row): number => {
   for (const [id, ord] of orderBy) {

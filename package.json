@@ -56,7 +56,7 @@
     "prettier": "^2.5.1",
     "react-scripts": "^5.0.0",
     "sass": "^1.45.1",
-    "typescript": "^4.5.4"
+    "typescript": "^4.6.2"
   },
   "resolutions": {
     "react-virtualized/react": "^17.0.2"

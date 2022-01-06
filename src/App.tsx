@@ -1,7 +1,7 @@
 import "./styles.scss"
 
 import pipe from "lodash/fp/pipe"
-import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { RefObject, useEffect, useMemo, useRef } from "react"
 import { DndProvider } from "react-dnd"
 import { HTML5Backend } from "react-dnd-html5-backend"
 import * as RV from "react-virtualized"
@@ -12,12 +12,10 @@ import { GroupCell } from "./components/GroupCell"
 import { HeadingCell } from "./components/HeadingCell"
 import { ValueCell } from "./components/ValueCell"
 import { adjustScrollToCell } from "./lib/adjustScrollToCell"
-import { overMap } from "./lib/fp"
 import { isGroup } from "./lib/Group"
-import { usePins } from "./lib/hooks/usePins"
+import { ColOptions, usePreset } from "./lib/hooks/usePreset"
 import { useQuery } from "./lib/hooks/useQuery"
 import { useSelection } from "./lib/hooks/useSelection"
-import { useSize } from "./lib/hooks/useSize"
 import {
   mkCellRangeRenderer,
   mkCellRenderer,
@@ -25,11 +23,8 @@ import {
   rowRange,
   stickyRangeRenderer,
 } from "./lib/Range"
-import { Col, Filters, Row,Schema } from "./lib/Schema"
+import {  ColId,emptyQuery, Row,Schema } from "./lib/Schema"
 import { mkRow } from "./lib/Schema/arbitrary"
-import * as Query from "./lib/Schema/Query"
-
-const TODO = () => console.log("TODO")
 
 // Very large but not random (takes too long to generate 1M rows)
 // Uncomment to test the grid with offset adjustment
@@ -37,7 +32,13 @@ const TODO = () => console.log("TODO")
 // Smaller and random
 const initialRows: Row[] = Array(10000).fill(null).map(() => mkRow(0))
 
-const initialColumns: Map<string, Col> = new Map(Schema.columnTags.map((id) => [id, Schema.getCol(id)]))
+const initialColumns: Map<string, ColOptions[ColId]> = new Map(Schema.columnTags.map((id) => [id, {
+  ...Schema.getCol(id),
+  key: id,
+  label: id,
+  width: 130,
+  isPinned: false,
+}]))
 
 const headingRange = rowRange(0)
 
@@ -45,31 +46,25 @@ const HEADER_HEIGHT = 70
 
 export default function App(): JSX.Element {
   const gridRef: RefObject<RV.Grid> = useRef(null)
-  const [query, setQuery] = useState(Query.Query())
-  const [columns, setColumns] = useState(initialColumns)
-
-  const {columnKeys, columnEntry} = useMemo(() => {
-    const columnKeys = Array.from(columns.keys())
-    const columnEntry = (ix: number): [string, Col] => [columnKeys[ix], columns.get(columnKeys[ix])!]
-    return {columnKeys, columnEntry}
-  }, [columns])
-
-  const setFilters = useCallback((update: (filters: Filters) => Filters) => setQuery((query) => ({
-    ...query,
-    filters: update(query.filters),
-  })), [])
-
-  const columnWidth = useSize({
-    gridRef,
-    defaultSize: 130,
+  const {
+    columns,
+    setColumns,
+    columnByIndex,
+    pinCount,
+    pinnedRange,
+    query,
+    ...preset
+  } = usePreset({
+    columns: initialColumns,
+    query: emptyQuery,
+    pinCount: 0,
   })
   const res = useQuery({ rows: initialRows, query })
-  const pins = usePins(pipe(overMap, setColumns))
   const selection = useSelection({
     selectableRange: [[0, 1], [columns.size, res.result.length + 1]],
     scrollToCell: adjustScrollToCell({
       gridRef,
-      offset: { columnIndex: pins.pinCount, rowIndex: 1 },
+      offset: { columnIndex: pinCount, rowIndex: 1 },
     }),
   }, [columns.size, res.result.length])
 
@@ -78,9 +73,9 @@ export default function App(): JSX.Element {
 
   const cellRenderer = useMemo(() => mkCellRenderer(
     [headingRange, ({ columnIndex: index, style }) => {
-      const [key, column] = columnEntry(index)
+      const column = columnByIndex(index)
       return (
-        <div key={key} style={style}>
+        <div key={column.key} style={style}>
           <CM.Context
             renderMenu={(ref, style) => (
               <CM.Menu ref={ref} style={style}>
@@ -89,15 +84,15 @@ export default function App(): JSX.Element {
                     column={column}
                     rows={initialRows}
                     filters={query.filters}
-                    setFilters={setFilters} />
+                    setFilters={preset.setFilters} />
                 </CM.SubMenu>
                 <CM.Button
                   onClick={() => setColumns((cols) => {
-                    const {...col} = cols.get(key)
-                    const ix = Array.from(cols.keys()).indexOf(key)
-                    const otherKey = `${column.id}:${Date.now()}`
+                    const {...col} = cols.get(column.key)
+                    const ix = Array.from(cols.keys()).indexOf(column.key)
+                    col.key = `${Date.now()}`
                     const nextCols = Array.from(cols)
-                    nextCols.splice(ix + 1, 0, [otherKey, col])
+                    nextCols.splice(ix + 1, 0, [col.key, col])
                     return new Map(nextCols)
                   })}
                 >
@@ -105,8 +100,9 @@ export default function App(): JSX.Element {
                 </CM.Button>
                 <CM.Confirm
                   onConfirmed={() => setColumns((cols) => {
-                    cols.delete(key)
-                    return new Map(cols)
+                    const nextCols = new Map(cols)
+                    nextCols.delete(column.key)
+                    return nextCols
                   })}
                 >
                   {(onClick, state) =>
@@ -123,27 +119,29 @@ export default function App(): JSX.Element {
             )}
           >
             <HeadingCell
-              label={column.id}
+              label={column.label}
+              columnKey={column.key}
               columnIndex={index}
-              size={{ width: columnWidth.get(key), height: HEADER_HEIGHT }}
-              sorting={Query.sorting(column.id).get(query)}
-              isPinned={pins.isPinned(index)}
-              isGrouped={Query.isGrouped(column.id).get(query)}
-              onChangeGrouped={pipe(Query.isGrouped(column.id).set, setQuery)}
-              onChangeSort={pipe(Query.sorting(column.id).set, setQuery)}
-              onChangePinned={pins.setPinned(index)}
-              onChangeWidth={columnWidth.set(key)}
-              onDrop={pins.insertBefore(index)}
+              width={column.width}
+              height={HEADER_HEIGHT}
+              isPinned={preset.isPinned(column.key)}
+              sorting={preset.getSorting(column.id)}
+              isGrouped={preset.getIsGrouped(column.id)}
+              onChangeGrouped={preset.setIsGrouped(column.id)}
+              onChangeSort={preset.setSorting(column.id)}
+              onChangePinned={preset.setPinned(column.key)}
+              onChangeWidth={preset.setWidth(column.key)}
+              onDrop={preset.moveColumn(index)}
             />
           </CM.Context>
         </div>
       )
     }],
     [x => x, ({ columnIndex, rowIndex, style }) => {
-      const [colKey, column] = columnEntry(columnIndex)
+      const column = columnByIndex(columnIndex)
       const row = res.result[rowIndex - 1]
       if (isGroup(row)) {
-        const key = `${colKey}:g:${row.key}`
+        const key = `${column.key}:g:${row.key}`
         const isExpanded = res.isExpanded(row.key)
         return (
           <div key={key} style={style} onClick={() => res.setExpanded(row.key)(!isExpanded)}>
@@ -153,7 +151,7 @@ export default function App(): JSX.Element {
       } else {
         const cell = Schema.getCell(column.id, row)
         const coord = Point({ columnIndex, rowIndex })
-        const key = `${colKey}:r:${rowIndex}`
+        const key = `${column.key}:r:${rowIndex}`
         return (
           <div key={key} style={style} {...selection.cellEvents(coord)}>
             <ValueCell cell={cell} isFocused={selection.isFocused(coord)} isSelected={selection.isSelected(coord)} />
@@ -162,7 +160,7 @@ export default function App(): JSX.Element {
       }
     }]
   ), [
-    pins.pinCount,
+    pinCount,
     selection.selection,
     selection.isSelecting,
     res.result,
@@ -171,15 +169,15 @@ export default function App(): JSX.Element {
   ])
 
   const cellRangeRenderer = useMemo(() => mkCellRangeRenderer(
-    [pipe(pins.pinnedRange, headingRange), stickyRangeRenderer({
+    [pipe(pinnedRange, headingRange), stickyRangeRenderer({
       key: "pinned-heading",
       top: true,
       left: true,
     })],
     [headingRange, stickyRangeRenderer({ key: "heading", top: true })],
-    [pins.pinnedRange, stickyRangeRenderer({ key: "pinned", left: true })],
+    [pinnedRange, stickyRangeRenderer({ key: "pinned", left: true })],
     [x => x, x => x]
-  ), [pins.pinCount])
+  ), [pinCount])
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -195,7 +193,7 @@ export default function App(): JSX.Element {
             cellRenderer={cellRenderer}
             columnCount={columns.size}
             rowCount={res.result.length + 1}
-            columnWidth={({ index }) => columnWidth.get(columnKeys[index])}
+            columnWidth={({ index }) => columnByIndex(index).width}
             rowHeight={({ index }) => index === 0 ? HEADER_HEIGHT : 30}
           />
         )}

@@ -1,5 +1,3 @@
-import { isArray } from "lodash"
-
 export class TProxy<T> {
   public __Type: T
   constructor() {
@@ -41,28 +39,8 @@ export class Table<T, C extends CTMap<T>> {
     return { type: (this.Columns[id] || {}).type, values: rows.map((row) => row[id]) }
   }
 
-  mapCell<id extends ColumnTagsOf<this>, R extends RowMapOf<this>>(id: id, map: R): CellMapOf<this, R>[id] {
-    return (Object.keys(map) as (keyof R)[]).reduce((acc, key) => ({
-      ...acc,
-      [key]:
-        isArray(map[key])
-          ? this.getCellArray(id, map[key] as RowOf<this>[]).values
-          : this.getCell(id, map[key] as RowOf<this>).value,
-    }), { type: (this.getCol(id) || {}).type } as CellMapOf<this, R>[id])
-  }
-
   get columnTags(): ColumnTagsOf<this>[] {
     return Object.keys(this.Columns)
-  }
-}
-
-type RowMapOf<T extends Table<any, any>> = Record<string, RowOf<T> | RowOf<T>[]>
-type CellMapOf<T extends Table<any, any>, R extends RowMapOf<T>> = {
-  [id in ColumnTagsOf<T>]: { type: TypeTagAt<T>[id] } & {
-    [k in keyof R]
-      : R[k] extends RowOf<T>[]
-      ? TypeAt<T>[id][]
-      : TypeAt<T>[id]
   }
 }
 
