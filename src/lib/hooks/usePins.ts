@@ -69,8 +69,8 @@ export function usePins<A>(
 
   // Moving columns might change their pinned state depending on the source and target column's state.
   const moveTo = (target: number) => (ix: number) => {
-    if (isPinned(target)) setCount((x) => x + 1)
-    else if(isPinned(ix)) setCount((x) => x - 1)
+    if(isPinned(ix) && !isPinned(target)) setCount((x) => x - 1)
+    if(!isPinned(ix) && isPinned(target)) setCount((x) => x + 1)
     setColumns($insertBefore(target)(ix))
   }
 
