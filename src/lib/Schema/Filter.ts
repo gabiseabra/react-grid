@@ -17,6 +17,8 @@ export type Filters = {
   [id in ColId]?: FilterMap[TypeTagAt<Schema>[id]]
 }
 
+export const eqFilters = (a: Filters, b: Filters) => isEqual(a, b)
+
 export type ComparisonFilter<T>
   = { op: "EQ", value: T }
   | { op: "GT", value: T }
@@ -40,7 +42,7 @@ const filterCmp = <T>(filter: ComparisonFilter<T>, cmp: (a: T | null, b: T | nul
 
 const FilterFns = {
   boolean: (filter: FilterMap["boolean"]) => (a: boolean | null) => typeof filter.value === "undefined" || a === filter.value,
-  string: (filter: FilterMap["string"]) => (a: string | null) => a !== null && filter.values.includes(a),
+  string: (filter: FilterMap["string"]) => (a: string | null) => filter.values.includes(a),
   number: (filter: FilterMap["number"]) => filterCmp(filter, (a, b) => compare({ type: "number", a, b })),
   percent: (filter: FilterMap["percent"]) => filterCmp(filter, (a, b) => compare({ type: "percent", a, b })),
   date: (filter: FilterMap["date"]) => filterCmp(filter, (a, b) => compare({ type: "date", a, b })),
@@ -54,5 +56,3 @@ export const applyFilters = (filters: Filters) => (rows: Row[]): Row[] => {
     return (FilterFns[Schema.getCol(id).type] as any)(filter)(row[id])
   }, true))
 }
-
-export const eqFilters = (a: Filters, b: Filters) => isEqual(a, b)

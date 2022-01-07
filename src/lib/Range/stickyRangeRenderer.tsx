@@ -27,6 +27,8 @@ export const stickyRangeRenderer = ({ key, className, style = {}, top, left }: S
   verticalOffsetAdjustment,
 }) => {
   if (!styleCache[key]) {
+    // Cells in the grid have position absolute, so we have to make up for the
+    // minX/Y offset with css transforms here.
     const marginLeft = left ? columnSizeAndPositionManager.getSizeAndPositionOfCell(minX).offset : undefined
     const marginTop = top ? rowSizeAndPositionManager.getSizeAndPositionOfCell(minY).offset : undefined
     const transform = translate({

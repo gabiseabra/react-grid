@@ -13,7 +13,7 @@ import { HeadingCell } from "./components/HeadingCell"
 import { ValueCell } from "./components/ValueCell"
 import { adjustScrollToCell } from "./lib/adjustScrollToCell"
 import { isGroup } from "./lib/Group"
-import { ColOptions, usePreset } from "./lib/hooks/usePreset"
+import { ICol, usePreset } from "./lib/hooks/usePreset"
 import { useQuery } from "./lib/hooks/useQuery"
 import { useSelection } from "./lib/hooks/useSelection"
 import {
@@ -23,22 +23,26 @@ import {
   rowRange,
   stickyRangeRenderer,
 } from "./lib/Range"
-import {  ColId,emptyQuery, Row,Schema } from "./lib/Schema"
-import { mkRow } from "./lib/Schema/arbitrary"
+import { emptyQuery, Row, Schema } from "./lib/Schema"
+import { mkRow } from "./lib/Schema/gen"
 
-// Very large but not random (takes too long to generate 1M rows)
-// Uncomment to test the grid with offset adjustment
+// A very large dataset that would take forever to generate random values for, so
+// the following is not random. Uncomment to test the grid with offset adjustment.
 // const initialRows: Row[] = Array(1000000).fill(mkRow(0))
-// Smaller and random
 const initialRows: Row[] = Array(10000).fill(null).map(() => mkRow(0))
 
-const initialColumns: Map<string, ColOptions[ColId]> = new Map(Schema.columnTags.map((id) => [id, {
+const initialColumns: Map<string, ICol> = new Map(Schema.columnTags.map((id) => [id, {
   ...Schema.getCol(id),
   key: id,
   label: id,
   width: 130,
-  isPinned: false,
 }]))
+
+const initialPreset = {
+  columns: initialColumns,
+  query: emptyQuery,
+  pinCount: 0,
+}
 
 const headingRange = rowRange(0)
 
@@ -46,19 +50,16 @@ const HEADER_HEIGHT = 70
 
 export default function App(): JSX.Element {
   const gridRef: RefObject<RV.Grid> = useRef(null)
+
   const {
-    columns,
-    columnByIndex,
-    pinCount,
+    preset: { columns, pinCount, query },
+    getColumnByIndex,
     pinnedRange,
-    query,
     ...preset
-  } = usePreset({
-    columns: initialColumns,
-    query: emptyQuery,
-    pinCount: 0,
-  })
+  } = usePreset(initialPreset)
+
   const res = useQuery({ rows: initialRows, query })
+
   const selection = useSelection({
     selectableRange: [[0, 1], [columns.size, res.result.length + 1]],
     scrollToCell: adjustScrollToCell({
@@ -68,11 +69,11 @@ export default function App(): JSX.Element {
   }, [columns.size, res.result.length])
 
   useEffect(() => gridRef.current?.recomputeGridSize(), [columns])
-  useEffect(() => selection.clearSelection(), [columns, res.result])
+  useEffect(() => selection.clearSelection(), [columns.size, res.result.length])
 
   const cellRenderer = useMemo(() => mkCellRenderer(
     [headingRange, ({ columnIndex: index, style }) => {
-      const column = columnByIndex(index)
+      const column = getColumnByIndex(index)
       return (
         <div key={column.key} style={style}>
           <CM.Context
@@ -122,7 +123,7 @@ export default function App(): JSX.Element {
       )
     }],
     [x => x, ({ columnIndex, rowIndex, style }) => {
-      const column = columnByIndex(columnIndex)
+      const column = getColumnByIndex(columnIndex)
       const row = res.result[rowIndex - 1]
       if (isGroup(row)) {
         const key = `${column.key}:g:${row.key}`
@@ -177,7 +178,7 @@ export default function App(): JSX.Element {
             cellRenderer={cellRenderer}
             columnCount={columns.size}
             rowCount={res.result.length + 1}
-            columnWidth={({ index }) => columnByIndex(index).width}
+            columnWidth={({ index }) => getColumnByIndex(index).width}
             rowHeight={({ index }) => index === 0 ? HEADER_HEIGHT : 30}
           />
         )}

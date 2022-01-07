@@ -9,7 +9,11 @@ type PointProps = {
 
 export const Point = ({ columnIndex, rowIndex }: PointProps): Point => [columnIndex, rowIndex]
 
+export const eqPoint = (a: Point, b: Point): boolean => a[0] === b[0] && a[1] === b[1]
+
 export type BBox = [Point, Point]
+
+export const eqBBox = (a: BBox, b: BBox): boolean => eqPoint(a[0], b[0]) && eqPoint(a[1], b[1])
 
 type BBoxProps = {
   columnStartIndex: number,

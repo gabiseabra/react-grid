@@ -15,6 +15,10 @@ type UseQuery = {
   setExpanded: (key: string) => (isExpanded: boolean) => void
 }
 
+/**
+ * useQuery applies filters, ordering and grouping in a Query to a list of rows
+ * on the client-side, and controls the row's state.
+ */
 export function useQuery({rows, query}: UseQueryOptions): UseQuery {
   const [expandedGroups, setExpandedGroups] = useState({} as Record<string, boolean>)
 

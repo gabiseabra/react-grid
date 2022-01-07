@@ -1,7 +1,7 @@
 import { Lens } from "monocle-ts"
 
 import { eqFilters } from "."
-import { Filters } from "./Filters"
+import { Filters } from "./Filter"
 import { ColId } from "./Schema"
 
 export type Order = "ASC" | "DESC"
@@ -22,6 +22,11 @@ export type GroupBy = ColId[]
 export const eqGroupBy = (a: GroupBy, b: GroupBy) =>
   a.length === b.length && a.reduce<boolean>((acc, id, ix) => acc && id === b[ix], true)
 
+/**
+ * Payload to use in server-side requests. Column-specific query options are
+ * extracted from here through lens, these properties are shared across all
+ * columns with the same ColId in display.
+ */
 export type Query = {
   orderBy: OrderBy
   groupBy: GroupBy
@@ -36,6 +41,10 @@ export const emptyQuery = {
 
 export const eqQuery = (a: Query, b: Query) =>
   eqOrderBy(a.orderBy, b.orderBy) && eqGroupBy(a.groupBy, b.groupBy) && eqFilters(a.filters, b.filters)
+
+export const Query2OrderBy: Lens<Query, OrderBy> = Lens.fromProp<Query>()("orderBy")
+export const Query2GroupBy: Lens<Query, GroupBy> = Lens.fromProp<Query>()("groupBy")
+export const Query2Filters: Lens<Query, Filters> = Lens.fromProp<Query>()("filters")
 
 export function OrderBy2Sorting(id: ColId): Lens<OrderBy, Sorting | undefined> {
   return new Lens(
@@ -70,7 +79,3 @@ export function Filters2Filter(id: ColId): Lens<Filters, Filters[typeof id] | un
     (filter) => (filters) => ({...filters, [id]: filter})
   )
 }
-
-export const Query2OrderBy: Lens<Query, OrderBy> = Lens.fromProp<Query>()("orderBy")
-export const Query2GroupBy: Lens<Query, GroupBy> = Lens.fromProp<Query>()("groupBy")
-export const Query2Filters: Lens<Query, Filters> = Lens.fromProp<Query>()("filters")

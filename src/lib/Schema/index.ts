@@ -1,5 +1,5 @@
-export * from "./Filters"
-export * from "./Formatter"
+export * from "./Filter"
+export * from "./Format"
 export * from "./Query"
 export * from "./Schema"
 export * from "./TypeMap"

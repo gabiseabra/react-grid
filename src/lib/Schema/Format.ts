@@ -1,10 +1,12 @@
+import { isEqual } from "lodash"
+
 import { TypeMap, TypeTag } from "./TypeMap"
 
 type DateFormat = "YYYY-MM-DD" | "DD/MM/YYYY"
 
 type Locale = "en-GB"
 
-export type FormatOptionsMap = {
+export type FormatMap = {
   string: {
     nullValue?: string
   }
@@ -31,8 +33,10 @@ export type FormatOptionsMap = {
   }
 }
 
-export type FormatT = { [type in TypeTag]: { type: type } & FormatOptionsMap[type] }
+export type FormatT = { [type in TypeTag]: { type: type } & FormatMap[type] }
 export type Format = FormatT[TypeTag]
+
+export const eqFormat = (a: Format, b: Format) => isEqual(a, b)
 
 const defBoolValues = { true: "true", false: "false", null: "—" }
 

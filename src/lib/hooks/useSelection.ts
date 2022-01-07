@@ -2,30 +2,8 @@ import throttle from "lodash/throttle"
 import { MouseEventHandler, useEffect, useMemo, useState } from "react"
 
 import { Endo } from "../fp"
-import { BBox,isContained, Point } from "../Range/BBox"
+import { BBox, eqPoint,isContained, Point } from "../Range/BBox"
 import UA from "../UserAgent"
-
-const min = (a: number, b: number) => Math.min(isNaN(a) ? Infinity : a, isNaN(b) ? Infinity : b)
-const max = (a: number, b: number) => Math.max(isNaN(a) ? -Infinity : a, isNaN(b) ? -Infinity : b)
-
-const mkRange = (a: Point, b: Point): BBox => [
-  [min(a[0], b[0]), min(a[1], b[1])],
-  [max(a[0], b[0]), max(a[1], b[1])],
-]
-
-const cellCmp = (a: Point, b: Point): boolean => a[0] === b[0] && a[1] === b[1]
-
-const metaKey = (e: KeyboardEvent) => UA.getOS().name === "Mac OS" ? e.metaKey : e.ctrlKey
-
-const getCellDelta = (e: KeyboardEvent): Point | undefined => {
-  const delta = metaKey(e) ? Infinity : 1
-  switch (e.key) {
-    case "ArrowUp": return [0, -delta]
-    case "ArrowDown": return [0, delta]
-    case "ArrowLeft": return [-delta, 0]
-    case "ArrowRight": return [delta, 0]
-  }
-}
 
 type UseSelectionOptions = {
   selectableRange: BBox,
@@ -58,7 +36,7 @@ export function useSelection({
   const [{ isSelecting, focus, pivot }, setState] = useState(emptyState)
   const selection = useMemo(() => focus && pivot && mkRange(focus, pivot), [focus, pivot])
   const isSelected = (cell: Point) => Boolean(selection && isContained([cell, cell])(selection))
-  const isFocused = (cell: Point) => Boolean(focus && cellCmp(cell, focus))
+  const isFocused = (cell: Point) => Boolean(focus && eqPoint(cell, focus))
   const clearSelection = () => setState(emptyState)
 
   useEffect(() => {
@@ -101,8 +79,28 @@ export function useSelection({
       })),
       onMouseUp: () => setState((state) => ({ ...state, isSelecting: false })),
       onMouseMove: throttle(() => {
-        if (isSelecting && !(pivot && cellCmp(cell, pivot))) setState((state) => ({ ...state, pivot: cell }))
+        if (isSelecting && !(pivot && eqPoint(cell, pivot))) setState((state) => ({ ...state, pivot: cell }))
       }, 30),
     }),
+  }
+}
+
+const min = (a: number, b: number) => Math.min(isNaN(a) ? Infinity : a, isNaN(b) ? Infinity : b)
+const max = (a: number, b: number) => Math.max(isNaN(a) ? -Infinity : a, isNaN(b) ? -Infinity : b)
+
+const mkRange = (a: Point, b: Point): BBox => [
+  [min(a[0], b[0]), min(a[1], b[1])],
+  [max(a[0], b[0]), max(a[1], b[1])],
+]
+
+const metaKey = (e: KeyboardEvent) => UA.getOS().name === "Mac OS" ? e.metaKey : e.ctrlKey
+
+const getCellDelta = (e: KeyboardEvent): Point | undefined => {
+  const delta = metaKey(e) ? Infinity : 1
+  switch (e.key) {
+    case "ArrowUp": return [0, -delta]
+    case "ArrowDown": return [0, delta]
+    case "ArrowLeft": return [-delta, 0]
+    case "ArrowRight": return [delta, 0]
   }
 }

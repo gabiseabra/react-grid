@@ -5,9 +5,6 @@ import { BBox,columnRange, emptyRange } from "../Range/BBox"
 
 export type Pins = Set<number>
 
-// Pinned columns are grouped to one side of the screen so they can be styled
-// with position: sticky, so their pinned state affects the total order.
-// The pinned state is broken down into 1) column list's positions 2) pin count.
 export type UsePins<A> = {
   count: number
   pinnedRange: Endo<BBox>
@@ -24,14 +21,22 @@ export type UsePins<A> = {
 // TODO parametrize this
 const PIN_COLUMN_OFFSET = 0
 
-export function usePins<A>(
-  // A setState dispatcher of the list of columns controlled by usePin.
+/**
+ * Pinned columns are grouped to one side of the screen so they can be styled
+ * with position: sticky, so a column's pinned state affects the order in which
+ * it is rendered.
+ * The pinned state is broken down into 1) column's positions in a list 2) pin count.
+ * Where the first `count` items in the list of columns are the ones pinned.
+ * usePins controls both of these properties.
+ */
+ export function usePins<A>(
+  // A setState dispatcher to the list of columns controlled by usePin.
   setColumns: (fn: (as: A[]) => A[]) => any,
   initialCount = 0
 ): UsePins<A> {
   const [count, setCount] = useState(initialCount)
   // There is only support for pinning columns to the left of the grid rn,
-  // so pinned ranges are the first count columns.
+  // so the pinned range is 0 through `count`.
   const isPinned = (ix: number) => ix < count
   const pinnedRange =
     count === 0
