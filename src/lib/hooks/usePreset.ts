@@ -39,6 +39,7 @@ export type Preset = {
 export const eqPreset = (a: Preset, b: Preset) => (
   a.pinCount === b.pinCount &&
   a.columns.size === b.columns.size &&
+  /** `key` is ignored! */
   zip(
     Array.from(a.columns.values()),
     Array.from(b.columns.values())
@@ -89,11 +90,14 @@ export function usePreset(initialPreset: Preset): UsePreset {
     pinnedRange,
     ...pins
   } = usePins<[string, ICol]>(pipe(overMap, setColumns), initialPreset.pinCount)
+
   const columnKeys = useMemo(() => Array.from(columns.keys()), [columns])
+
   const setFilters: Dispatch<SetStateAction<Filters>> = pipe(
     (fn) => Query2Filters.modify(fn instanceof Function ? fn : () => fn),
     setQuery
   )
+
   const setPreset: Dispatch<SetStateAction<Preset>> = pipe(
     (fn) => fn instanceof Function ? fn({ columns, query, pinCount }) : fn,
     (nextPreset) => {
@@ -102,8 +106,10 @@ export function usePreset(initialPreset: Preset): UsePreset {
       setPinCount(nextPreset.pinCount)
     }
   )
+
   const getColumnByIndex = (ix: number) => columns.get(columnKeys[ix])!
   const getIndexByColKey = (k: string) => columnKeys.indexOf(k)
+
   return {
     preset: { columns, query, pinCount },
     columnKeys,
