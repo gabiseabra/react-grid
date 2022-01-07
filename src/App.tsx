@@ -111,6 +111,8 @@ export default function App(): JSX.Element {
               isPinned={preset.isPinned(column.key)}
               sorting={preset.getSorting(column.id)}
               isGrouped={preset.getIsGrouped(column.id)}
+              hasFilters={Boolean(preset.getFilter(column.id))}
+              onClearFilters={() => preset.setFilter(column.id)(undefined)}
               onChangeGrouped={preset.setIsGrouped(column.id)}
               onChangeSort={preset.setSorting(column.id)}
               onChangePinned={preset.setPinned(column.key)}

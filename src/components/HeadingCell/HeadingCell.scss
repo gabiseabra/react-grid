@@ -27,7 +27,7 @@
     bottom: 0;
     pointer-events: none;
   }
-  .title {
+  .label {
     max-width: 100%;
     box-sizing: border-box;
     flex: 1;
@@ -66,6 +66,9 @@
       right: 4px;
       font-size: 8px;
       font-weight: bold;
+    }
+    .filterControl {
+      padding-bottom: 2px;
     }
   }
   .react-resizable-handle {

@@ -2,6 +2,7 @@ import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 import { faArrowUp } from "@fortawesome/free-solid-svg-icons/faArrowUp"
 import { faLayerGroup } from "@fortawesome/free-solid-svg-icons/faLayerGroup"
 import { faThumbtack } from "@fortawesome/free-solid-svg-icons/faThumbtack"
+import { faFilter } from "@fortawesome/free-solid-svg-icons/faFilter"
 import { FontAwesomeIcon as Icon } from "@fortawesome/react-fontawesome"
 import cx from "classnames"
 import throttle from "lodash/throttle"
@@ -15,28 +16,39 @@ type HeadingToggleControlsProps = {
   sorting?: Sorting
   isPinned?: boolean
   isGrouped?: boolean
+  hasFilters?: boolean
   onChangePinned?: (pinned: boolean) => void
   onChangeGrouped?: (grouped: boolean) => void
+  onClearFilters?: () => void
 }
 
 function HeadingToggleControls({
   sorting,
   isGrouped,
   isPinned,
+  hasFilters,
   onChangeGrouped,
   onChangePinned,
+  onClearFilters,
 }: HeadingToggleControlsProps): JSX.Element {
   return (
     <div className="toggleControls">
       <div className="space" />
-      <button className={cx("ordControl", { disabled: !sorting })}>
-        {sorting?.order === "DESC" ? (
-          <Icon icon={faArrowUp} />
-        ) : sorting?.order === "ASC" ? (
-          <Icon icon={faArrowDown} />
-        ) : null}
-        {sorting && <span>{sorting.priority + 1}</span>}
-      </button>
+      {sorting && (
+        <button className="ordControl">
+          {sorting.order === "DESC" ? (
+            <Icon icon={faArrowUp} />
+          ) : (
+            <Icon icon={faArrowDown} />
+          )}
+          <span>{sorting.priority + 1}</span>
+        </button>
+      )}
+      {hasFilters && (
+        <button className="filterControl" onClick={onClearFilters}>
+          <Icon icon={faFilter} />
+        </button>
+      )}
       <button
         className={cx("groupControl", { disabled: !isGrouped })}
         onClick={() => onChangeGrouped?.(!isGrouped)}
@@ -133,7 +145,7 @@ export function HeadingCell({
         <div ref={dragRef} className="dragSource">
           <div ref={dropRef} className="dropTarget" />
           <HeadingToggleControls sorting={sorting} {...props} />
-          <div className="title">
+          <div className="label">
             {label}
           </div>
         </div>
