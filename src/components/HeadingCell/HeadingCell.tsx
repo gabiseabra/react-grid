@@ -56,7 +56,6 @@ function HeadingToggleControls({
 type HeadingCellProps = {
   label: string
   columnKey: string
-  columnIndex: number
   width: number
   height: number
   onDrop?: (columnKey: string) => void
@@ -69,7 +68,6 @@ type DnDItem = { columnKey: string }
 export function HeadingCell({
   label,
   columnKey,
-  columnIndex,
   width,
   height,
   sorting,
@@ -84,7 +82,7 @@ export function HeadingCell({
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-  }), [columnIndex])
+  }), [columnKey])
 
   const [drop, dropRef] = useDrop(() => ({
     accept: "column",
@@ -96,8 +94,8 @@ export function HeadingCell({
   }), [onDrop])
 
   const onResize = useCallback(throttle((_e, { size }) =>
-    onChangeWidth?.(size.width), 5
-  ), [onChangeWidth])
+    onChangeWidth?.(size.width)
+  , 5), [onChangeWidth])
 
   const onClick = useCallback((e: MouseEvent) => {
     if (!e.shiftKey) return

@@ -106,7 +106,6 @@ export default function App(): JSX.Element {
             <HeadingCell
               label={column.label}
               columnKey={column.key}
-              columnIndex={index}
               width={column.width}
               height={HEADER_HEIGHT}
               isPinned={preset.isPinned(column.key)}
