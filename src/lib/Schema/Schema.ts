@@ -1,15 +1,16 @@
-import { ColOf, ColumnTagsOf, RowOf, Table, TaggedColOf, TProxy } from "../Table"
-import { ColumnsDef } from "./ColumnDefs"
-import { TypeMap } from "./TypeMap"
+import { AggOptions, FormatOptions, TypeName } from "./TypeDefs"
 
-export const Schema = new Table(new TProxy<TypeMap>(), ColumnsDef)
+export type ColId = string
 
-export type Schema = typeof Schema
+export type Row = Record<string, unknown>
 
-export type ColId = ColumnTagsOf<Schema>
-
-export type ColT = TaggedColOf<Schema>
-
-export type Col = ColOf<Schema>
-
-export type Row = RowOf<Schema>
+export type Col<Types extends TypeName = TypeName>
+  = { id: ColId }
+  // UI state
+  & { label: string; width: number }
+  // type and type-dependent properties
+  & { [T in Types]: {
+      type: T
+      format: FormatOptions[T]
+      agg: AggOptions[T]
+    } }[Types]

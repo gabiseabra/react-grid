@@ -1,4 +1,4 @@
-.StringFilter {
+.SetFilter {
   margin: 0;
   padding: 0;
   display: flex;
@@ -15,7 +15,7 @@
       padding: 3px 0;
     }
   }
-  & > .StringFilter-Controls {
+  & > header {
     flex: 0;
     padding: 5px;
     border-bottom: 1px solid lightslategray;

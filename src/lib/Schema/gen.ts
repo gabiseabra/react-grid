@@ -1,24 +1,16 @@
-import Big from "big.js"
 import * as Faker from "faker"
 
-import { Row, Schema } from "./Schema"
-import { TypeMap } from "./TypeMap"
+import { TypeName, TypeOf } from "./TypeDefs"
 
-export function arbitraryValue<T extends keyof TypeMap>(type: T, seed?: number): TypeMap[T];
-export function arbitraryValue(type: keyof TypeMap, seed?: number): TypeMap[typeof type] {
-  if (seed) Faker.seed(seed)
+export function arbitraryValue<T extends TypeName>(type: T): TypeOf<T>;
+export function arbitraryValue(type: TypeName): TypeOf<typeof type> {
   switch (type) {
-    case "string": return Faker.lorem.word()
-    case "percent": return new Big(Faker.datatype.number(100)).div(100)
-    case "number": return Faker.datatype.number()
-    case "boolean": return Faker.datatype.boolean()
-    case "date": return Faker.date.future()
+    case "MaybeString":
+      if (Faker.datatype.boolean()) return null
+    case "String": return Faker.lorem.word()
+    case "MaybeDate":
+      if (Faker.datatype.boolean()) return null
+    case "Date": return Faker.date.future()
+    case "ABC": return Faker.datatype.number({ min: 0, max: 2 })
   }
-}
-
-export function mkRow(seed?: number) {
-  return Schema.columnTags.reduce<Row>((acc, id) => ({
-    ...acc,
-    [id]: arbitraryValue(Schema.getCol(id).type, seed),
-  }), {} as Row)
 }

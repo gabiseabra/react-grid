@@ -26,8 +26,6 @@ export const moveToStart = (ixs: number[]) => (as: any[]): any[] => {
   return start.concat(as)
 }
 
-export const overMap = <K, A, B>(fn: (as: [K, A][]) => [K, B][]) => (as: Map<K, A>): Map<K, B> => new Map(fn(Array.from(as)))
-
 export const mapValues = <A, B>(fn: (a: A, ix: number) => B) => <K>(as: Map<K, A>): Map<K, B> => new Map(
   Array.from(as.entries()).map(([k, a], ix) => [k, fn(a, ix)])
 )

@@ -1,7 +1,7 @@
 import { ReactNode } from "react"
 import * as RV from "react-virtualized"
 
-import { Endo } from "../fp"
+import { Endo } from "../Utils"
 import { BBox,isContained, maxBound, Point } from "./BBox"
 
 export type CellRenderer = (props: RV.GridCellProps) => ReactNode

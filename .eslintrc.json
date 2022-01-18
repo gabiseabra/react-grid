@@ -53,6 +53,7 @@
     "comma-dangle": [
       "warn",
       "always-multiline"
-    ]
+    ],
+    "@typescript-eslint/ban-types": "off"
   }
 }

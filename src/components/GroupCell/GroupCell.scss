@@ -1,3 +1,18 @@
 .GroupCell {
-  background: lightgray !important;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  background: rgb(240, 240, 240);
+  box-shadow: 0 0 0 0.5px inset lightslategray;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  cursor: pointer;
+  & > svg {
+    position: absolute;
+    left: 5px;
+    width: 10px !important;
+  }
 }

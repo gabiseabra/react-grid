@@ -1,7 +1,7 @@
 import { useState } from "react"
 
-import { Endo, insertBefore as $insertBefore } from "../fp"
 import { BBox,columnRange, emptyRange } from "../Range/BBox"
+import { Endo, insertBefore as $insertBefore } from "../Utils"
 
 export type Pins = Set<number>
 

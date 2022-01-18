@@ -32,6 +32,7 @@
     "react-dom": "^17.0.2",
     "react-resizable": "^3.0.4",
     "react-virtualized": "^9.22.3",
+    "spicery": "^2.1.2",
     "ua-parser-js": "^1.0.2"
   },
   "devDependencies": {

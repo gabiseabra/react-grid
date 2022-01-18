@@ -1,7 +1,7 @@
 import { ReactNode } from "react"
 import * as RV from "react-virtualized"
 
-import { Endo } from "../fp"
+import { Endo } from "../Utils"
 import { BBox,isEmpty } from "./BBox"
 
 export type RangeRenderer = (nodes: ReactNode[], ctx: { bbox: BBox } & RV.GridCellRangeProps) => ReactNode[]

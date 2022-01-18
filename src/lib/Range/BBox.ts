@@ -1,4 +1,4 @@
-import { Endo } from "../fp"
+import { Endo } from "../Utils"
 
 export type Point = [number, number]
 

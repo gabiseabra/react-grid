@@ -1,9 +1,9 @@
 import throttle from "lodash/throttle"
 import { MouseEventHandler, useEffect, useMemo, useState } from "react"
 
-import { Endo } from "../fp"
 import { BBox, eqPoint,isContained, Point } from "../Range/BBox"
 import UA from "../UserAgent"
+import { Endo } from "../Utils"
 
 type UseSelectionOptions = {
   selectableRange: BBox,

@@ -1,58 +1,40 @@
 
-import { useMemo } from "react"
+import { FilterOptions, FormatOptions, formatType, TypeName, TypeOf } from "../../lib/Schema"
+import { Wrap } from "../../lib/Union"
+import { SetFilter as SetFilterView } from "./Set"
 
-import { Col, ColId, Filters, Row } from "../../lib/Schema"
-import { BoolFilter } from "./Bool"
-import { DateFilter } from "./Date"
-import { NumberFilter } from "./Number"
-import { PercentFilter } from "./Percent"
-import { StringFilter } from "./String"
-
-type TaggedPossibleValuesProps<R> = {
-  [k in keyof R]: {
-    id: k
-    rows: R[]
-    children: (props: { possibleValues: Set<R[k]> }) => JSX.Element
-  }
+export type FilterPropsG<T extends TypeName = TypeName> = {
+  id: string
+  type: T
+  filter?: FilterOptions[T]
+  format?: FormatOptions[T]
+  getPossibleValues?: () => Set<TypeOf<T>>
+  onChange
+    : T extends TypeName
+    ? (_?: FilterOptions[T]) => void
+    : never
 }
 
-function PossibleValues<R, id extends keyof R>({id, rows, children}: TaggedPossibleValuesProps<R>[id]): JSX.Element
-function PossibleValues<R>({id, rows, children}: TaggedPossibleValuesProps<R>[keyof R]): JSX.Element {
-  const possibleValues: Set<R[typeof id]> = useMemo(() => new Set(rows.map((row) => row[id])), [rows, id])
-  return children({ possibleValues })
-}
+export type FilterProps<T = unknown>
+  = T extends TypeName
+  ? FilterPropsG<T>
+  : FilterPropsG
 
-type SetFilters = (update: (filters: Filters) => Filters) => any
-
-export type FilterProps = {
-  column: Col
-  rows: Row[]
-  filters: Filters
-  setFilters: SetFilters
-}
-
-const setFilterAt = (id: ColId, setFilters: SetFilters) => (filter: Filters[typeof id]): void => setFilters((filters) => ({
-  ...filters,
-  [id]: filter,
-}))
-
-export function Filter({ column, rows, filters, setFilters }: FilterProps): JSX.Element {
-  switch(column.type) {
-    case "string":
+export function Filter<T = unknown>($props: FilterProps<T>): JSX.Element {
+  const props = $props as FilterProps<TypeName>
+  switch(props.type) {
+    case "String":
+    case "MaybeString":
+    case "ABC":
+      type T = typeof $props.type
+      const format = (a: TypeOf<T>) => formatType(...[
+        props.type,
+        props.format || FormatOptions[props.type],
+        a
+      ] as Parameters<typeof formatType>)
       return (
-        <PossibleValues<Row, typeof column.id> id={column.id} rows={rows}>
-          {({possibleValues}) => (
-            <StringFilter id={column.id} filter={filters[column.id]} onChange={setFilterAt(column.id, setFilters)} possibleValues={possibleValues} />
-          )}
-        </PossibleValues>
+        <SetFilterView<TypeOf<Wrap<T>>> {...props} format={format} />
       )
-    case "boolean":
-      return <BoolFilter filter={filters[column.id]} onChange={setFilterAt(column.id, setFilters)} />
-    case "number":
-      return <NumberFilter filter={filters[column.id]} onChange={setFilterAt(column.id, setFilters)} />
-    case "percent":
-      return <PercentFilter filter={filters[column.id]} onChange={setFilterAt(column.id, setFilters)} />
-    case "date":
-      return <DateFilter filter={filters[column.id]} onChange={setFilterAt(column.id, setFilters)} />
+    default: return <>TODO</>
   }
 }

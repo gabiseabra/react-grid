@@ -12,8 +12,9 @@ import { GroupCell } from "./components/GroupCell"
 import { HeadingCell } from "./components/HeadingCell"
 import { ValueCell } from "./components/ValueCell"
 import { adjustScrollToCell } from "./lib/adjustScrollToCell"
+import { Columns, Rows } from "./lib/Dataset"
 import { isGroup } from "./lib/Group"
-import { ICol, usePreset } from "./lib/hooks/usePreset"
+import { usePreset } from "./lib/hooks/usePreset"
 import { useQuery } from "./lib/hooks/useQuery"
 import { useSelection } from "./lib/hooks/useSelection"
 import {
@@ -23,42 +24,28 @@ import {
   rowRange,
   stickyRangeRenderer,
 } from "./lib/Range"
-import { emptyQuery, Row, Schema } from "./lib/Schema"
-import { mkRow } from "./lib/Schema/gen"
-
-// A very large dataset that would take forever to generate random values for, so
-// the following is not random. Uncomment to test the grid with offset adjustment.
-// const initialRows: Row[] = Array(1000000).fill(mkRow(0))
-const initialRows: Row[] = Array(10000).fill(null).map(() => mkRow(0))
-
-const initialColumns: Map<string, ICol> = new Map(Schema.columnTags.map((id) => [id, {
-  ...Schema.getCol(id),
-  key: id,
-  label: id,
-  width: 130,
-}]))
-
-const initialPreset = {
-  columns: initialColumns,
-  query: emptyQuery,
-  pinCount: 0,
-}
+import { emptyQuery, Preset, TypeName, TypeOf } from "./lib/Schema"
 
 const headingRange = rowRange(0)
 
 const HEADER_HEIGHT = 70
+
+export const initialPreset: Preset = {
+  columns: Columns,
+  query: emptyQuery,
+  pinCount: 0,
+}
 
 export default function App(): JSX.Element {
   const gridRef: RefObject<RV.Grid> = useRef(null)
 
   const {
     preset: { columns, pinCount, query },
-    getColumnByIndex,
     pinnedRange,
     ...preset
   } = usePreset(initialPreset)
 
-  const res = useQuery({ rows: initialRows, query })
+  const res = useQuery(query)
 
   const selection = useSelection({
     selectableRange: [[0, 1], [columns.size, res.result.length + 1]],
@@ -73,23 +60,33 @@ export default function App(): JSX.Element {
 
   const cellRenderer = useMemo(() => mkCellRenderer(
     [headingRange, ({ columnIndex: index, style }) => {
-      const column = getColumnByIndex(index)
+      const column = columns.iget(index)!
+      const colKey = columns.key(index)!
       return (
-        <div key={column.key} style={style}>
+        <div key={colKey} style={style}>
           <CM.Context
             renderMenu={(ref, style) => (
               <CM.Menu ref={ref} style={style}>
                 <CM.SubMenu id="filters" label="Filter">
-                  <Filter
-                    column={column}
-                    rows={initialRows}
-                    filters={query.filters}
-                    setFilters={preset.setFilters} />
+                  <Filter<unknown>
+                    id={column.id}
+                    type={column.type}
+                    format={column.format}
+                    filter={preset.getFilter(column.id)}
+                    onChange={preset.setFilter(column.id)}
+                    getPossibleValues={() => new Set(Rows.map((r) => r[column.id] as any))}
+                  />
                 </CM.SubMenu>
-                <CM.Button onClick={preset.cloneColumn(column.key)}>
+                <CM.Button onClick={() => {
+                  preset.insertColumn(
+                    String(Date.now()),
+                    {...column},
+                    index + 1
+                  )
+                }}>
                   Duplicate
                 </CM.Button>
-                <CM.Confirm onConfirmed={preset.deleteColumn(column.key)}>
+                <CM.Confirm onConfirmed={() => preset.deleteColumn(colKey)}>
                   {(onClick, state) =>
                     <CM.Button onClick={onClick}>
                       {state === "CONFIRM" ? "Really?" : "Delete"}
@@ -105,42 +102,53 @@ export default function App(): JSX.Element {
           >
             <HeadingCell
               label={column.label}
-              columnKey={column.key}
+              columnKey={colKey}
               width={column.width}
               height={HEADER_HEIGHT}
-              isPinned={preset.isPinned(column.key)}
+              isPinned={preset.isPinned(colKey)}
               sorting={preset.getSorting(column.id)}
-              isGrouped={preset.getIsGrouped(column.id)}
+              isGrouped={preset.isGrouped(column.id)}
               hasFilters={Boolean(preset.getFilter(column.id))}
-              onClearFilters={() => preset.setFilter(column.id)(undefined)}
-              onChangeGrouped={preset.setIsGrouped(column.id)}
+              onClearFilters={preset.setFilter(column.id)}
+              onChangeGrouped={preset.setGrouped(column.id)}
               onChangeSort={preset.setSorting(column.id)}
-              onChangePinned={preset.setPinned(column.key)}
-              onChangeWidth={preset.setWidth(column.key)}
-              onDrop={preset.moveColumn(index)}
+              onChangePinned={preset.setPinned(colKey)}
+              onChangeWidth={preset.setWidth(colKey)}
+              onDrop={($key) => preset.moveColumn($key, index)}
             />
           </CM.Context>
         </div>
       )
     }],
     [x => x, ({ columnIndex, rowIndex, style }) => {
-      const column = getColumnByIndex(columnIndex)
+      const column = columns.iget(columnIndex)!
+      const colKey = columns.key(columnIndex)!
       const row = res.result[rowIndex - 1]
       if (isGroup(row)) {
-        const key = `${column.key}:g:${row.key}`
+        const key = `${colKey}:g:${row.key}`
         const isExpanded = res.isExpanded(row.key)
         return (
           <div key={key} style={style} onClick={() => res.setExpanded(row.key)(!isExpanded)}>
-            <GroupCell column={column} rows={row.entries} />
+            <GroupCell
+              type={column.type}
+              values={row.entries.map(row => row[column.id] as any)}
+              isExpanded={isExpanded}
+              columnIndex={columnIndex}
+            />
           </div>
         )
       } else {
-        const cell = Schema.getCell(column.id, row)
+        const value = row[column.id] as TypeOf<TypeName>
         const coord = Point({ columnIndex, rowIndex })
-        const key = `${column.key}:r:${rowIndex}`
+        const key = `${colKey}:r:${rowIndex}`
         return (
           <div key={key} style={style} {...selection.cellEvents(coord)}>
-            <ValueCell cell={cell} isFocused={selection.isFocused(coord)} isSelected={selection.isSelected(coord)} />
+            <ValueCell<unknown>
+              type={column.type}
+              value={value}
+              isFocused={selection.isFocused(coord)}
+              isSelected={selection.isSelected(coord)}
+            />
           </div>
         )
       }
@@ -179,7 +187,7 @@ export default function App(): JSX.Element {
             cellRenderer={cellRenderer}
             columnCount={columns.size}
             rowCount={res.result.length + 1}
-            columnWidth={({ index }) => getColumnByIndex(index).width}
+            columnWidth={({ index }) => columns.iget(index)!.width}
             rowHeight={({ index }) => index === 0 ? HEADER_HEIGHT : 30}
           />
         )}

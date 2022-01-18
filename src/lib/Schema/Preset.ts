@@ -1,31 +1,26 @@
 import { Lens } from "monocle-ts"
 
-import { eqFilters } from "."
-import { Filters } from "./Filter"
-import { ColId } from "./Schema"
+import { IMap } from "../IMap"
+import { Col, ColId } from "./Schema"
+import { Filter, TypeName } from "./TypeDefs"
 
 export type Order = "ASC" | "DESC"
 
 export type Sorting = { priority: number, order: Order }
 
-export const eqSorting = (a: Sorting, b: Sorting) => a.priority === b.priority && a.order === b.order
-
 export type OrderBy = [ColId, Order][]
-
-export const eqOrderBy = (a: OrderBy, b: OrderBy) =>
-  a.length === b.length && a.reduce<boolean>((acc, ord, ix) => (
-    acc && ord[0] === b[ix][0] && ord[1] === b[ix][1]
-  ), true)
 
 export type GroupBy = ColId[]
 
-export const eqGroupBy = (a: GroupBy, b: GroupBy) =>
-  a.length === b.length && a.reduce<boolean>((acc, id, ix) => acc && id === b[ix], true)
+export type Filters = Record<ColId, Filter>
 
 /**
- * Payload to use in server-side requests. Column-specific query options are
- * extracted from here through lens, these properties are shared across all
- * columns with the same ColId in display.
+ * ColId-indexed column options and payload for server-side requests.
+ * As columns may appear duplicated in the grid, these properties are shared
+ * between all instances of the same column id in display.
+ * These are kept separate (not duplicated) from the individual column's state
+ * because otherwise, turning `Col[]` into `Query`, would return different results
+ * depending the columns' order.
  */
 export type Query = {
   orderBy: OrderBy
@@ -33,15 +28,22 @@ export type Query = {
   filters: Filters
 }
 
-export const emptyQuery = {
+/**
+ * Preset captures all of the state of the grid's _columns_ in a serializable structure.
+ */
+ export type Preset = {
+  columns: IMap<string, Col>
+  query: Query
+  pinCount: number
+}
+
+export const emptyQuery: Query = {
   orderBy: [],
   groupBy: [],
   filters: {},
 }
 
-export const eqQuery = (a: Query, b: Query) =>
-  eqOrderBy(a.orderBy, b.orderBy) && eqGroupBy(a.groupBy, b.groupBy) && eqFilters(a.filters, b.filters)
-
+export const Preset2Query: Lens<Preset, Query> = Lens.fromProp<Preset>()("query")
 export const Query2OrderBy: Lens<Query, OrderBy> = Lens.fromProp<Query>()("orderBy")
 export const Query2GroupBy: Lens<Query, GroupBy> = Lens.fromProp<Query>()("groupBy")
 export const Query2Filters: Lens<Query, Filters> = Lens.fromProp<Query>()("filters")
@@ -72,10 +74,18 @@ export function GroupBy2IsGrouped(id: ColId): Lens<GroupBy, boolean> {
   )
 }
 
-export function Filters2Filter<id extends ColId>(id: id): Lens<Filters, Filters[id] | undefined>
-export function Filters2Filter(id: ColId): Lens<Filters, Filters[typeof id] | undefined> {
+export function Filters2Filter<T extends TypeName>(id: ColId): Lens<Filters, Filter<T> | undefined>
+export function Filters2Filter(id: ColId): Lens<Filters, Filter | undefined> {
   return new Lens(
-    (filters) => filters[id],
-    (filter) => (filters) => ({...filters, [id]: filter})
+    (filters) => {
+      const filter = filters[id]
+      if (typeof filter === "undefined") return
+      return filter
+    },
+    (filter) => ({...filters}) => {
+      if (typeof filter === "undefined") delete filters[id]
+      else filters[id] = filter
+      return filters
+    }
   )
 }
